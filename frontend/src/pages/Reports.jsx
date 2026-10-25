@@ -2,8 +2,6 @@
 import React, { useMemo, useState } from "react";
 import {
     Activity,
-    ArrowDownRight,
-    ArrowUpRight,
     BarChart3,
     CalendarDays,
     Download,
@@ -32,15 +30,69 @@ const PRODUCT_DATA = [
     { name: "Wholegrain Bread", units: 142, revenue: 5680, profit: 2272 },
 ];
 
-const money = (value) =>
-    new Intl.NumberFormat("en-KE", {
-        style: "currency",
-        currency: "KES",
+const CURRENCY_LOCALES = {
+    KES: "en-KE",
+    USD: "en-US",
+    EUR: "de-DE",
+    GBP: "en-GB",
+    UGX: "en-UG",
+    TZS: "sw-TZ",
+    NGN: "en-NG",
+    ZAR: "en-ZA",
+    INR: "en-IN",
+    CAD: "en-CA",
+    AUD: "en-AU",
+};
+
+const LANGUAGE_LOCALES = {
+    en: "en-KE",
+    sw: "sw-KE",
+    fr: "fr-FR",
+    de: "de-DE",
+    es: "es-ES",
+    ar: "ar",
+    hi: "hi-IN",
+    pt: "pt-PT",
+    zh: "zh-CN",
+};
+
+function getLocale(currency, languageCode) {
+    const language = String(languageCode || "en")
+        .toLowerCase()
+        .split("-")[0];
+
+    const locale = LANGUAGE_LOCALES[language];
+
+    if (locale) {
+        return locale;
+    }
+
+    return CURRENCY_LOCALES[currency] || "en-KE";
+}
+
+function formatMoney(value, currency, locale) {
+    try {
+        return new Intl.NumberFormat(locale, {
+            style: "currency",
+            currency,
+            maximumFractionDigits: 0,
+        }).format(value);
+    } catch {
+        return `${currency} ${new Intl.NumberFormat("en-KE", {
+            maximumFractionDigits: 0,
+        }).format(value)}`;
+    }
+}
+
+function formatNumber(value, locale) {
+    return new Intl.NumberFormat(locale, {
         maximumFractionDigits: 0,
     }).format(value);
+}
 
-const number = (value) =>
-    new Intl.NumberFormat("en-KE").format(value);
+function getCurrencyLabel(currency) {
+    return currency;
+}
 
 const styles = `
 .reports-page {
@@ -68,10 +120,6 @@ const styles = `
 @keyframes reports-enter {
     from { opacity: 0; transform: translateY(7px); }
     to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes reports-spin {
-    to { transform: rotate(360deg); }
 }
 
 .reports-page button,
@@ -515,8 +563,16 @@ const styles = `
 }
 `;
 
-export default function Reports() {
+export default function Reports({ preferences = {} }) {
     const [period, setPeriod] = useState("7");
+
+    const currency = preferences.currency || "KES";
+    const languageCode =
+        preferences.languageCode || preferences.language || "en";
+    const locale = getLocale(currency, languageCode);
+
+    const money = (value) => formatMoney(value, currency, locale);
+    const number = (value) => formatNumber(value, locale);
 
     const data = useMemo(() => {
         const count = Number(period);
@@ -549,7 +605,12 @@ export default function Reports() {
     );
 
     function exportCsv() {
-        const header = ["Day", "Revenue (KES)", "Gross Profit (KES)", "Sales"];
+        const header = [
+            "Day",
+            `Revenue (${getCurrencyLabel(currency)})`,
+            `Gross Profit (${getCurrencyLabel(currency)})`,
+            "Sales",
+        ];
 
         const rows = data.map((item) => [
             item.day,
@@ -574,7 +635,7 @@ export default function Reports() {
         const link = document.createElement("a");
 
         link.href = url;
-        link.download = `bizpilot-report-${period}-days.csv`;
+        link.download = `bizpilot-report-${period}-days-${currency.toLowerCase()}.csv`;
 
         document.body.appendChild(link);
         link.click();
@@ -622,7 +683,9 @@ export default function Reports() {
 
             <section className="reports-summary">
                 <div>
-                    <h2 className="reports-summary-title">Performance overview</h2>
+                    <h2 className="reports-summary-title">
+                        Performance overview
+                    </h2>
                     <p className="reports-summary-note">
                         Summary for the selected reporting period
                     </p>
@@ -634,7 +697,10 @@ export default function Reports() {
                 </span>
             </section>
 
-            <section className="reports-metrics" aria-label="Performance metrics">
+            <section
+                className="reports-metrics"
+                aria-label="Performance metrics"
+            >
                 <KPICard
                     title="Total revenue"
                     value={money(totals.revenue)}
@@ -669,7 +735,9 @@ export default function Reports() {
                     <div className="reports-panel-header">
                         <div>
                             <h2>Revenue trend</h2>
-                            <p>Daily revenue in Kenyan shillings</p>
+                            <p>
+                                Daily revenue displayed in {currency}
+                            </p>
                         </div>
 
                         <span className="reports-panel-icon">
@@ -764,7 +832,8 @@ export default function Reports() {
                             {PRODUCT_DATA.map((product) => {
                                 const productMargin =
                                     product.revenue > 0
-                                        ? (product.profit / product.revenue) * 100
+                                        ? (product.profit / product.revenue) *
+                                        100
                                         : 0;
 
                                 return (
@@ -800,9 +869,11 @@ export default function Reports() {
                 <div className="reports-footer">
                     <FileSpreadsheet size={15} />
                     <span>
-                        All figures are illustrative demo data, not actual business
-                        results. The exported CSV contains daily figures for the
-                        selected period.
+                        All figures are illustrative demo data, not actual
+                        business results. Currency selection changes the
+                        displayed format only; it does not convert the
+                        underlying amounts. The exported CSV contains daily
+                        figures for the selected period.
                     </span>
                 </div>
             </section>
