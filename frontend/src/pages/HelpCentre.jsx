@@ -707,7 +707,7 @@ export default function HelpCentre() {
             <main className="hp-root">
                 <section className="hp-hero">
                     <span className="hp-eyebrow">
-                        <Sparkles size={15} />
+                        {/* <Sparkles size={15} /> */}
                         BIZPILOT SUPPORT
                     </span>
 
