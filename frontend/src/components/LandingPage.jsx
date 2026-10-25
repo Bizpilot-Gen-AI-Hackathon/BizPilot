@@ -1,76 +1,73 @@
-
 import React, { useEffect, useRef, useState } from "react";
 import {
   Activity,
-  ArrowDownRight,
   ArrowRight,
+  ArrowUp,
   ArrowUpRight,
   BarChart3,
-  Bot,
   Boxes,
   Check,
-  ChevronRight,
   ChevronDown,
+  ChevronRight,
   CircleHelp,
   CirclePlay,
-  Clock3,
   Command,
   DollarSign,
   FileSpreadsheet,
   FileText,
+  Menu,
   MessageSquare,
   MessageSquareText,
-  RefreshCw,
-  Search,
-  ShoppingCart,
-  Upload,
-  Wallet,
-  Menu,
   Package,
   Pause,
+  RefreshCw,
+  Search,
   ShieldCheck,
+  ShoppingCart,
   Sparkles,
   TrendingUp,
+  Wallet,
   Workflow,
   X,
-  Zap,
 } from "lucide-react";
+import SmartImage, { PHOTOS, photoUrl, preloadPhoto } from "./SmartImage";
 
 const MEDIA = {
-  hero:
-    "https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1800&q=85",
-  analytics:
-    "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=85",
-  retail:
-    "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1000&q=85",
-  ecommerce:
-    "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1000&q=85",
-  team:
-    "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1000&q=85",
-  workspace:
-    "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=85",
-  agentResearch:
-    "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=1000&q=85",
-  agentOperations:
-    "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1000&q=85",
-  agentInsights:
-    "https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=1000&q=85",
+  hero: PHOTOS.hero,
+  analytics: PHOTOS.analytics,
+  retail: PHOTOS.retail,
+  ecommerce: PHOTOS.ecommerce,
+  team: PHOTOS.team,
+  workspace: PHOTOS.workspace,
+  agentResearch: PHOTOS.agentResearch,
+  agentOperations: PHOTOS.agentOperations,
+  agentInsights: PHOTOS.agentInsights,
   video:
     "https://player.vimeo.com/external/539983030.hd.mp4?s=79fef9561947ea8de6f0fe501388795492c93618&profile_id=172",
 };
 
+/* Start downloading the sign-in photo when someone shows intent to open it. */
+const warmAuthPhoto = () => preloadPhoto(PHOTOS.auth, "panel");
+
+/* Brand colours (match the app: global.css) */
 const C = {
-  green: "#0E9C6B",
-  greenDark: "#087950",
-  forest: "#173D30",
-  ink: "#17251F",
-  muted: "#718078",
-  cream: "#FAF9F5",
-  white: "#FFFFFF",
-  border: "#E7EBE5",
-  paleGreen: "#EAF5EE",
-  pale: "#F2F4EF",
+  green: "#1E6B3C",
+  greenDark: "#165530",
+  forest: "#0E2F1D",
+  mint: "#8FD9AB",
+  ink: "#14211A",
 };
+
+const navLinks = [
+  ["bizpilot-bp-features", "Platform"],
+  ["bizpilot-bp-agents", "AI agents"],
+  ["bizpilot-bp-how", "How it works"],
+  ["bizpilot-bp-import-records", "Your records"],
+  ["bizpilot-bp-faq", "FAQ"],
+  ["bizpilot-bp-businesses", "Who it's for"],
+];
+
+const marqueeItems = ["Sales", "Inventory", "Reorders", "Pricing", "Cash flow", "Diagnosis"];
 
 const features = [
   {
@@ -160,558 +157,567 @@ const stories = [
 ];
 
 const globalStyles = `
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 
   .bp-landing, .bp-landing * { box-sizing: border-box; }
   .bp-landing {
-    font-family: 'DM Sans', sans-serif;
-    color: ${C.ink};
-    background: ${C.cream};
+    --g: #1E6B3C; --g-dark: #165530; --g-deep: #0E2F1D; --g-mid: #1A5A34; --mint: #8FD9AB;
+    --ink: #14211A; --ink2: #34443A; --muted: #5F6F65; --faint: #8A978E;
+    --cream: #F7F8F3; --tint: #EEF4EC; --tint2: #E4EFE6; --line: #E2E8E0;
+    --font-d: 'Bricolage Grotesque', 'Manrope', system-ui, sans-serif;
+    --ease: cubic-bezier(.2,.7,.2,1);
+    font-family: 'DM Sans', system-ui, sans-serif;
+    font-size: 16px;
+    color: var(--ink);
+    background: var(--cream);
     width: 100%;
     min-height: 100vh;
     overflow: clip;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
-  .bp-landing h1, .bp-landing h2, .bp-landing h3,
-  .bp-landing h4, .bp-landing p { margin-top: 0; }
-  .bp-landing h1, .bp-landing h2, .bp-landing h3,
-  .bp-landing h4 {
-    font-family: 'Manrope', sans-serif;
-    letter-spacing: -0.055em;
-    line-height: 1.12;
+  .bp-landing [id] { scroll-margin-top: 84px; }
+  .bp-landing h1, .bp-landing h2, .bp-landing h3, .bp-landing h4, .bp-landing p { margin-top: 0; }
+  .bp-landing h1, .bp-landing h2, .bp-landing h3, .bp-landing h4 {
+    font-family: var(--font-d);
+    letter-spacing: -.035em;
+    line-height: 1.08;
+    font-weight: 700;
   }
-  .bp-landing button, .bp-landing a, .bp-landing select {
-    font: inherit;
-  }
+  .bp-landing button, .bp-landing a, .bp-landing select { font: inherit; }
   .bp-landing button { cursor: pointer; }
   .bp-landing a { color: inherit; text-decoration: none; }
   .bp-landing img { display: block; max-width: 100%; }
-  .bp-landing button:focus-visible, .bp-landing a:focus-visible,
-  .bp-landing select:focus-visible {
-    outline: 3px solid #78CFA7;
-    outline-offset: 4px;
+  .bp-landing ::selection { background: #BFE3CD; }
+  .bp-landing button:focus-visible, .bp-landing a:focus-visible, .bp-landing select:focus-visible, .bp-landing summary:focus-visible {
+    outline: 3px solid #78CFA7; outline-offset: 4px;
   }
 
+  /* Sentence-case the small labels written in capitals */
+  .bp-landing .bp-kicker, .bp-landing .bp-card-label, .bp-landing .bp-recommend-label,
+  .bp-landing .bp-agent-number, .bp-landing .bp-image-caption small {
+    text-transform: lowercase;
+  }
+  .bp-landing .bp-kicker::first-letter, .bp-landing .bp-card-label::first-letter,
+  .bp-landing .bp-recommend-label::first-letter, .bp-landing .bp-agent-number::first-letter,
+  .bp-landing .bp-image-caption small::first-letter { text-transform: uppercase; }
+
+  /* ---------- scroll progress + back to top ---------- */
+  .bp-landing .bp-progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 300; pointer-events: none; }
+  .bp-landing .bp-progress i {
+    display: block; height: 100%; transform-origin: left; transform: scaleX(var(--scroll, 0));
+    background: linear-gradient(90deg, #4CAE72, var(--g));
+  }
+  .bp-landing .bp-top-btn {
+    position: fixed; right: 22px; bottom: 22px; z-index: 150;
+    display: grid; place-items: center; width: 46px; height: 46px;
+    border: 1px solid var(--line); border-radius: 50%; background: #fff; color: var(--g-deep);
+    box-shadow: 0 10px 28px rgba(14,47,29,.16);
+    opacity: 0; transform: translateY(14px); pointer-events: none;
+    transition: opacity .3s var(--ease), transform .3s var(--ease), background .2s, color .2s;
+  }
+  .bp-landing .bp-top-btn.is-visible { opacity: 1; transform: none; pointer-events: auto; }
+  .bp-landing .bp-top-btn:hover { background: var(--g); color: #fff; border-color: var(--g); }
+
+  /* ---------- navigation ---------- */
   .bp-landing .bp-nav {
     position: sticky; top: 0; z-index: 100;
     display: flex; align-items: center; justify-content: space-between;
-    gap: 24px; min-height: 76px; padding: 12px clamp(20px, 5vw, 84px);
-    background: rgba(250,249,245,.91);
-    border-bottom: 1px solid rgba(23,61,48,.08);
-    backdrop-filter: blur(18px);
+    gap: 24px; min-height: 78px; padding: 10px clamp(20px, 5vw, 84px);
+    background: rgba(247,248,243,.78);
+    border-bottom: 1px solid transparent;
+    backdrop-filter: blur(16px);
+    transition: min-height .25s var(--ease), background .25s, border-color .25s, box-shadow .25s;
+  }
+  .bp-landing .bp-nav.is-scrolled {
+    min-height: 66px; background: rgba(247,248,243,.94);
+    border-bottom-color: var(--line); box-shadow: 0 10px 30px rgba(14,47,29,.06);
   }
   .bp-landing .bp-nav-links { display: flex; align-items: center; gap: 30px; }
-  .bp-landing .bp-nav-links a, .bp-landing .bp-login {
-    color: #59665E; font-size: 13px; font-weight: 600;
-    transition: color .2s ease;
+  .bp-landing .bp-nav-links a {
+    position: relative; color: var(--muted); font-size: 15px; font-weight: 500; transition: color .2s;
   }
-  .bp-landing .bp-nav-links a:hover, .bp-landing .bp-login:hover { color: ${C.green}; }
+  .bp-landing .bp-nav-links a::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -7px; height: 2px; border-radius: 2px;
+    background: var(--g); transform: scaleX(0); transform-origin: left; transition: transform .28s var(--ease);
+  }
+  .bp-landing .bp-nav-links a:hover, .bp-landing .bp-nav-links a.is-active { color: var(--g); }
+  .bp-landing .bp-nav-links a:hover::after, .bp-landing .bp-nav-links a.is-active::after { transform: scaleX(1); }
   .bp-landing .bp-brand { display: inline-flex; align-items: center; gap: 10px; flex-shrink: 0; }
   .bp-landing .bp-brand-name {
-    font-family: 'Manrope', sans-serif; font-size: 22px; font-weight: 800;
-    letter-spacing: -1.3px; color: ${C.forest};
+    font-family: var(--font-d); font-size: 24px; font-weight: 800; letter-spacing: -.045em; color: var(--g-deep);
   }
   .bp-landing .bp-brand-mark {
     display: grid; place-items: center; width: 38px; height: 38px;
-    border-radius: 13px; background: ${C.forest}; color: white;
+    border-radius: 11px; background: var(--g); color: #fff; box-shadow: inset 0 -2px 0 rgba(0,0,0,.14);
   }
-  .bp-landing .bp-nav-actions { display: flex; align-items: center; gap: 20px; }
-  .bp-landing .bp-button {
-    min-height: 48px; display: inline-flex; align-items: center;
-    justify-content: center; gap: 10px; padding: 0 21px;
-    border: 1px solid transparent; border-radius: 9px;
-    font-size: 13px; font-weight: 700;
-    transition: transform .22s ease, background .22s ease, box-shadow .22s ease;
-  }
-  .bp-landing .bp-button:hover { transform: translateY(-2px); }
-  .bp-landing .bp-button-primary {
-    color: white; background: ${C.forest};
-    box-shadow: 0 5px 14px rgba(23,61,48,.1);
-  }
-  .bp-landing .bp-button-primary:hover {
-    background: ${C.greenDark}; box-shadow: 0 9px 22px rgba(23,61,48,.17);
-  }
-  .bp-landing .bp-button-light {
-    background: white; border-color: ${C.border}; color: ${C.forest};
-  }
-  .bp-landing .bp-button-light:hover { border-color: #B4D7C3; }
+  .bp-landing .bp-nav-actions { display: flex; align-items: center; gap: 12px; }
   .bp-landing .bp-menu-toggle {
-    display: none; align-items: center; justify-content: center;
-    width: 42px; height: 42px; border: 1px solid ${C.border};
-    border-radius: 9px; background: white; color: ${C.forest};
+    display: none; align-items: center; justify-content: center; width: 42px; height: 42px;
+    border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--g-deep);
   }
 
+  /* ---------- buttons ---------- */
+  .bp-landing .bp-button {
+    min-height: 50px; display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 0 22px; border: 1px solid transparent; border-radius: 11px;
+    font-size: 15px; font-weight: 600; white-space: nowrap;
+    transition: transform .22s var(--ease), background .22s, box-shadow .22s, border-color .22s, color .22s;
+  }
+  .bp-landing .bp-button svg { transition: transform .22s var(--ease); }
+  .bp-landing .bp-button:hover svg:last-child { transform: translateX(3px); }
+  .bp-landing .bp-button:hover { transform: translateY(-2px); }
+  .bp-landing .bp-button:active { transform: translateY(0); }
+  .bp-landing .bp-button-primary { color: #fff; background: var(--g); box-shadow: inset 0 -2px 0 rgba(0,0,0,.16), 0 6px 16px rgba(30,107,60,.18); }
+  .bp-landing .bp-button-primary:hover { background: var(--g-dark); box-shadow: inset 0 -2px 0 rgba(0,0,0,.18), 0 12px 26px rgba(30,107,60,.26); }
+  .bp-landing .bp-button-light { background: #fff; border-color: var(--line); color: var(--g-deep); }
+  .bp-landing .bp-button-light:hover { border-color: #A9CFB6; }
+  .bp-landing .bp-login-btn {
+    display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px;
+    border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--g-deep);
+    font-size: 15px; font-weight: 600; white-space: nowrap;
+    transition: background .2s, border-color .2s, color .2s;
+  }
+  .bp-landing .bp-login-btn:hover { background: var(--tint); border-color: #B9D2C0; color: var(--g); }
+  .bp-landing .bp-login-btn svg { transition: transform .2s var(--ease); }
+  .bp-landing .bp-login-btn:hover svg { transform: translateX(3px); }
+  .bp-landing .bp-cap-button {
+    display: inline-flex; align-items: center; justify-content: center; gap: 9px; margin-top: 4px;
+    padding: 12px 18px; border: 1px solid transparent; border-radius: 11px; background: var(--g-deep); color: #fff;
+    font-size: 14px; font-weight: 600;
+    transition: transform .22s var(--ease), background .22s, box-shadow .22s;
+  }
+  .bp-landing .bp-cap-button svg:last-child { transition: transform .22s var(--ease); }
+  .bp-landing .bp-cap-button:hover { transform: translateY(-2px); background: var(--g); box-shadow: 0 12px 26px rgba(30,107,60,.24); }
+  .bp-landing .bp-cap-button:hover svg:last-child { transform: translateX(4px); }
+
+  /* ---------- hero ---------- */
   .bp-landing .bp-hero {
     position: relative; display: grid;
-    grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr);
-    align-items: center; gap: clamp(30px, 4vw, 70px);
-    padding: 35px clamp(20px, 6vw, 100px) 10px;
-    max-width: 1600px; margin: auto;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    align-items: center; gap: clamp(32px, 4vw, 72px);
+    padding: 56px clamp(20px, 6vw, 96px) 44px;
+    max-width: 1500px; margin: auto;
   }
-  .bp-landing .bp-hero:before {
-    content: ''; position: absolute; width: 420px; height: 420px;
-    border-radius: 50%; background: rgba(14,156,107,.07);
-    filter: blur(75px); top: 4%; right: 12%; pointer-events: none;
+  .bp-landing .bp-hero::before {
+    content: ""; position: absolute; inset: -80px -50vw auto; height: 760px; pointer-events: none;
+    background: radial-gradient(ellipse 55% 60% at 72% 38%, rgba(30,107,60,.12), transparent 70%);
   }
-  .bp-landing .bp-hero-copy { position: relative; z-index: 2; }
+  .bp-landing .bp-hero::after {
+    content: ""; position: absolute; inset: -80px -50vw auto; height: 760px; pointer-events: none;
+    background-image: linear-gradient(rgba(14,47,29,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(14,47,29,.045) 1px, transparent 1px);
+    background-size: 56px 56px;
+    -webkit-mask-image: radial-gradient(ellipse 60% 70% at 60% 35%, #000 20%, transparent 75%);
+    mask-image: radial-gradient(ellipse 60% 70% at 60% 35%, #000 20%, transparent 75%);
+  }
+  .bp-landing .bp-hero > * { position: relative; z-index: 1; }
+  .bp-landing .bp-hero-copy { max-width: 680px; }
   .bp-landing .bp-eyebrow {
-    display: inline-flex; align-items: center; gap: 10px;
-    padding: 7px 12px; border: 1px solid #DCE9DF;
-    border-radius: 999px; background: rgba(255,255,255,.7);
-    color: ${C.forest}; font-size: 10px; font-weight: 800;
-    letter-spacing: 1.35px;
+    display: inline-flex; align-items: center; gap: 10px; padding: 7px 14px;
+    border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.8);
+    color: var(--g-deep); font-size: 13px; font-weight: 600;
   }
   .bp-landing .bp-eyebrow-dot {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: ${C.green}; box-shadow: 0 0 0 4px rgba(14,156,107,.12);
-    animation: bpPulse 2.2s ease-in-out infinite;
+    width: 7px; height: 7px; border-radius: 50%; background: var(--g);
+    box-shadow: 0 0 0 4px rgba(30,107,60,.12); animation: bpPulse 2.2s ease-in-out infinite;
   }
   .bp-landing .bp-hero h1 {
-    margin: 25px 0 22px; font-size: clamp(42px, 5.1vw, 76px);
-    font-weight: 700; line-height: 1.045; letter-spacing: -.07em;
-    max-width: 760px;
+    margin: 0 0 24px; font-size: clamp(42px, 5vw, 76px);
+    font-weight: 700; line-height: 1.02; letter-spacing: -.045em; max-width: 780px;
   }
   .bp-landing .bp-gradient-text {
-    color: ${C.green};
-    background: linear-gradient(100deg, #0E9C6B 5%, #347C55 52%, #173D30 100%);
-    -webkit-background-clip: text; background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: var(--g);
+    background: linear-gradient(100deg, #2F8A52 5%, #1E6B3C 55%, #0E2F1D 110%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
   }
-  .bp-landing .bp-hero-description {
-    max-width: 540px; margin-bottom: 26px;
-    color: #68766D; font-size: 15px; line-height: 1.95;
+  .bp-landing .bp-word { display: inline-block; overflow: hidden; vertical-align: top; padding: 0 .04em .14em; margin: 0 -.04em -.14em; }
+  .bp-landing .bp-word-inner {
+    display: inline-block; transform: translateY(112%);
+    transition: transform .9s var(--ease); transition-delay: calc(var(--i) * 60ms + 120ms);
   }
+  .bp-landing .bp-visible .bp-word-inner { transform: none; }
+  .bp-landing .bp-word .bp-gradient-text, .bp-landing .bp-word.bp-word-accent .bp-word-inner {
+    background: none; -webkit-text-fill-color: currentColor; color: var(--g);
+  }
+  .bp-landing .bp-hero-description { max-width: 560px; margin-bottom: 30px; color: var(--muted); font-size: 18px; line-height: 1.75; }
   .bp-landing .bp-hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
-  .bp-landing .bp-proof {
-    display: flex; align-items: center; gap: 12px; margin-top: 31px;
-  }
-  .bp-landing .bp-proof-icon {
-    display: grid; place-items: center; width: 39px; height: 39px;
-    color: ${C.greenDark}; background: ${C.paleGreen}; border-radius: 50%;
-  }
-  .bp-landing .bp-proof strong { display: block; font-size: 12px; color: ${C.forest}; }
-  .bp-landing .bp-proof small { display: block; font-size: 11px; color: ${C.muted}; }
+  .bp-landing .bp-proof { display: flex; align-items: center; gap: 14px; margin-top: 34px; }
+  .bp-landing .bp-proof-icon { display: grid; place-items: center; width: 44px; height: 44px; color: var(--g); background: var(--tint2); border-radius: 50%; }
+  .bp-landing .bp-proof strong { display: block; font-size: 15px; color: var(--g-deep); }
+  .bp-landing .bp-proof small { display: block; font-size: 14px; color: var(--muted); }
 
-  .bp-landing .bp-dashboard-wrap { min-width: 0; position: relative; animation: bpFloat 7s ease-in-out infinite; }
-  .bp-landing .bp-dashboard-glow {
-    position: absolute; inset: 12% -5% 4%; background: rgba(14,156,107,.13);
-    filter: blur(45px); border-radius: 50%;
-  }
+  /* ---------- dashboard preview ---------- */
+  .bp-landing .bp-parallax, .bp-landing [data-parallax-box] { will-change: transform; }
+  .bp-landing .bp-hero [data-parallax] { transform: translate3d(0, var(--py, 0px), 0); will-change: transform; }
+  .bp-landing .bp-dashboard-wrap { min-width: 0; position: relative; animation: bpFloat 7s ease-in-out infinite; isolation: isolate; }
+  .bp-landing .bp-dashboard-glow { position: absolute; inset: 12% -5% 4%; background: rgba(30,107,60,.16); filter: blur(48px); border-radius: 50%; }
   .bp-landing .bp-dashboard {
-    position: relative; overflow: hidden; background: white;
-    border: 1px solid rgba(23,61,48,.13); border-radius: 16px;
-    box-shadow: 0 35px 90px rgba(27,54,39,.14), 0 3px 10px rgba(27,54,39,.04);
+    position: relative; overflow: hidden; background: #fff;
+    border: 1px solid rgba(14,47,29,.12); border-radius: 18px;
+    box-shadow: 0 40px 100px rgba(14,47,29,.16), 0 3px 10px rgba(14,47,29,.05);
     transform: perspective(1200px) rotateY(-3deg);
   }
-  .bp-landing .bp-dashboard-top {
-    min-height: 48px; display: flex; align-items: center; justify-content: space-between;
-    padding: 0 15px; border-bottom: 1px solid #E9EEE8; background: #FCFDFB;
-  }
+  .bp-landing .bp-dashboard-top { min-height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border-bottom: 1px solid #E9EEE8; background: #FCFDFB; }
   .bp-landing .bp-window-dots { display: flex; gap: 5px; }
-  .bp-landing .bp-window-dots i { width: 7px; height: 7px; border-radius: 50%; background: #D9E3DC; }
+  .bp-landing .bp-window-dots i { width: 8px; height: 8px; border-radius: 50%; background: #D9E3DC; }
   .bp-landing .bp-window-dots i:first-child { background: #E6A99B; }
   .bp-landing .bp-window-dots i:nth-child(2) { background: #EACD8C; }
   .bp-landing .bp-window-dots i:nth-child(3) { background: #9ED8B8; }
-  .bp-landing .bp-sample-tag {
-    display: inline-flex; align-items: center; gap: 6px; padding: 5px 8px;
-    border-radius: 5px; background: #EDF6EE; color: #397452;
-    font-size: 9px; font-weight: 800; letter-spacing: .7px;
-  }
-  .bp-landing .bp-dashboard-layout { display: grid; grid-template-columns: 48px 1fr; min-height: 340px; }
-  .bp-landing .bp-mini-sidebar {
-    display: flex; flex-direction: column; align-items: center; gap: 16px;
-    padding: 15px 0; background: #F8FAF7; border-right: 1px solid #E9EEE8;
-    color: #A0ADA4;
-  }
-  .bp-landing .bp-mini-sidebar .active {
-    display: grid; place-items: center; width: 31px; height: 31px;
-    border-radius: 8px; background: #E4F3E9; color: ${C.greenDark};
-  }
-  .bp-landing .bp-dashboard-content { padding: 19px; min-width: 0; }
-  .bp-landing .bp-dash-heading {
-    display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
-    margin-bottom: 16px;
-  }
-  .bp-landing .bp-dash-heading small {
-    display: block; color: #7E8B81; font-size: 8px;
-    font-weight: 800; letter-spacing: 1px;
-  }
-  .bp-landing .bp-dash-heading h3 { margin: 4px 0; font-size: clamp(14px, 1.5vw, 19px); letter-spacing: -.7px; }
-  .bp-landing .bp-dash-heading p { margin: 0; font-size: 10px; color: #89958D; }
-  .bp-landing .bp-demo-chip {
-    white-space: nowrap; padding: 5px 7px; border-radius: 6px;
-    background: #F1F4F0; color: #657368; font-size: 9px;
-  }
-  .bp-landing .bp-metrics { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 9px; }
-  .bp-landing .bp-metric {
-    padding: 12px 10px; min-width: 0; border: 1px solid #E9EEE8;
-    border-radius: 9px; background: linear-gradient(140deg,#fff,#FCFDFB);
-  }
-  .bp-landing .bp-metric span { display: block; color: #7C8980; font-size: 9px; }
-  .bp-landing .bp-metric strong {
-    display: block; margin: 6px 0 3px; color: ${C.forest};
-    font: 800 clamp(15px, 1.8vw, 22px)/1.1 'Manrope', sans-serif;
-    letter-spacing: -.8px;
-  }
-  .bp-landing .bp-metric small { color: #88958C; font-size: 8px; }
-  .bp-landing .bp-dash-lower { display: grid; grid-template-columns: minmax(0,1.6fr) minmax(105px,.9fr); gap: 10px; margin-top: 11px; }
-  .bp-landing .bp-chart-card, .bp-landing .bp-insight-card {
-    min-width: 0; border: 1px solid #E9EEE8; border-radius: 9px; padding: 12px;
-  }
+  .bp-landing .bp-sample-tag { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 5px; background: #EDF6EE; color: var(--g); font-size: 10px; font-weight: 700; }
+  .bp-landing .bp-dashboard-layout { display: grid; grid-template-columns: 48px 1fr; min-height: 350px; }
+  .bp-landing .bp-mini-sidebar { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 15px 0; background: #F8FAF7; border-right: 1px solid #E9EEE8; color: #A0ADA4; }
+  .bp-landing .bp-mini-sidebar .active { display: grid; place-items: center; width: 31px; height: 31px; border-radius: 8px; background: var(--tint2); color: var(--g); }
+  .bp-landing .bp-dashboard-content { padding: 19px; min-width: 0; text-align: left; }
+  .bp-landing .bp-dash-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+  .bp-landing .bp-dash-heading small { display: block; color: #7E8B81; font-size: 9px; font-weight: 700; letter-spacing: .06em; }
+  .bp-landing .bp-dash-heading h3 { margin: 4px 0; font-size: clamp(15px, 1.5vw, 20px); line-height: 1.25; letter-spacing: -.03em; }
+  .bp-landing .bp-dash-heading p { margin: 0; font-size: 11px; color: #7E8B81; }
+  .bp-landing .bp-demo-chip { white-space: nowrap; padding: 4px 8px; border-radius: 6px; background: #F1F4F0; color: #657368; font-size: 10px; }
+  .bp-landing .bp-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
+  .bp-landing .bp-metric { padding: 12px 10px; min-width: 0; border: 1px solid #E9EEE8; border-radius: 10px; background: linear-gradient(140deg, #fff, #FCFDFB); }
+  .bp-landing .bp-metric span { display: block; color: #6F7C73; font-size: 10px; line-height: 1.45; }
+  .bp-landing .bp-metric strong { display: block; margin: 6px 0 3px; color: var(--g-deep); font: 700 clamp(16px, 1.8vw, 24px)/1.1 var(--font-d); letter-spacing: -.04em; }
+  .bp-landing .bp-metric small { color: #7E8B81; font-size: 9px; line-height: 1.45; }
+  .bp-landing .bp-dash-lower { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(105px, .9fr); gap: 10px; margin-top: 11px; }
+  .bp-landing .bp-chart-card, .bp-landing .bp-insight-card { min-width: 0; border: 1px solid #E9EEE8; border-radius: 10px; padding: 12px; }
   .bp-landing .bp-chart-heading { display: flex; align-items: center; justify-content: space-between; gap: 5px; }
-  .bp-landing .bp-chart-heading strong { font-size: 10px; }
-  .bp-landing .bp-chart-heading small { display: block; color: #89958D; font-size: 8px; }
-  .bp-landing .bp-chart-heading select {
-    max-width: 78px; border: 1px solid #E5EBE5; border-radius: 5px;
-    padding: 4px; color: #5F6E63; background: white; font-size: 9px;
-  }
+  .bp-landing .bp-chart-heading strong { font-size: 11px; }
+  .bp-landing .bp-chart-heading small { display: block; color: #7E8B81; font-size: 9px; }
+  .bp-landing .bp-chart-heading select { max-width: 80px; border: 1px solid #E5EBE5; border-radius: 5px; padding: 4px; color: #5F6E63; background: #fff; font-size: 10px; }
   .bp-landing .bp-chart {
-    position: relative; display: flex; align-items: flex-end; justify-content: space-around;
-    gap: 5px; height: 105px; padding: 10px 4px 0;
-    background: repeating-linear-gradient(to bottom,transparent 0,transparent 24px,#EDF1EC 25px,#EDF1EC 26px);
+    position: relative; display: flex; align-items: flex-end; justify-content: space-around; gap: 5px; height: 108px; padding: 10px 4px 0;
+    background: repeating-linear-gradient(to bottom, transparent 0, transparent 24px, #EDF1EC 25px, #EDF1EC 26px);
   }
-  .bp-landing .bp-chart-bar {
-    flex: 1; max-width: 19px; min-width: 4px; border-radius: 4px 4px 1px 1px;
-    background: linear-gradient(to top,#5DB78B,#C5E8D0);
-    transform-origin: bottom; animation: bpBarRise .9s cubic-bezier(.2,.8,.2,1) both;
-  }
-  .bp-landing .bp-chart-bar.highlight { background: linear-gradient(to top,#087950,#41C18B); }
+  .bp-landing .bp-chart-bar { flex: 1; max-width: 19px; min-width: 4px; border-radius: 4px 4px 1px 1px; background: linear-gradient(to top, #5DB78B, #C5E8D0); transform-origin: bottom; animation: bpBarRise .9s var(--ease) both; }
+  .bp-landing .bp-chart-bar.highlight { background: linear-gradient(to top, var(--g-dark), #3FA667); }
   .bp-landing .bp-insight-card { display: flex; flex-direction: column; align-items: flex-start; background: #F4F8F2; }
-  .bp-landing .bp-insight-icon {
-    display: grid; place-items: center; width: 28px; height: 28px;
-    margin-bottom: 9px; border-radius: 8px; background: #E1F1E5; color: ${C.greenDark};
-  }
-  .bp-landing .bp-insight-card small { font-size: 8px; color: #728174; font-weight: 800; letter-spacing: .5px; }
-  .bp-landing .bp-insight-card strong { margin-top: 6px; font-size: 12px; line-height: 1.3; }
-  .bp-landing .bp-insight-card p { margin: 6px 0 0; font-size: 9px; line-height: 1.6; color: #77847A; }
+  .bp-landing .bp-insight-icon { display: grid; place-items: center; width: 28px; height: 28px; margin-bottom: 9px; border-radius: 8px; background: #E1F1E5; color: var(--g); }
+  .bp-landing .bp-insight-card small { font-size: 9px; color: #647466; font-weight: 700; letter-spacing: .04em; }
+  .bp-landing .bp-insight-card strong { margin-top: 6px; font-size: 13px; line-height: 1.3; }
+  .bp-landing .bp-insight-card p { margin: 6px 0 0; font-size: 10px; line-height: 1.6; color: #6E7B71; }
   .bp-landing .bp-floating-note {
-    position: absolute; display: flex; align-items: center; gap: 10px;
-    padding: 12px 15px; border: 1px solid rgba(23,61,48,.08);
-    border-radius: 11px; background: rgba(255,255,255,.96);
-    box-shadow: 0 12px 30px rgba(23,61,48,.1);
-    animation: bpFloat 5s ease-in-out infinite;
+    position: absolute; display: flex; align-items: center; gap: 10px; padding: 12px 15px;
+    border: 1px solid rgba(14,47,29,.08); border-radius: 12px; background: rgba(255,255,255,.97);
+    box-shadow: 0 14px 34px rgba(14,47,29,.12); animation: bpFloat 5s ease-in-out infinite;
   }
-  .bp-landing .bp-floating-note svg { color: ${C.green}; }
-  .bp-landing .bp-floating-note strong { display: block; font-size: 11px; }
-  .bp-landing .bp-floating-note small { display: block; color: #829087; font-size: 9px; }
+  .bp-landing .bp-floating-note svg { color: var(--g); }
+  .bp-landing .bp-floating-note strong { display: block; font-size: 13px; }
+  .bp-landing .bp-floating-note small { display: block; color: #6F7C73; font-size: 11px; }
   .bp-landing .bp-floating-one { left: -28px; bottom: 15%; }
   .bp-landing .bp-floating-two { right: -18px; top: 14%; animation-delay: -2s; }
 
-  .bp-landing .bp-section { padding: 105px clamp(20px, 7vw, 112px); }
+  /* records collage that resolves into the dashboard */
+  .bp-landing .bp-records-collage { position: absolute; inset: 0; z-index: 5; pointer-events: none; opacity: 0; animation: bpRecordsScene 5.2s ease-in-out both; }
+  .bp-landing .bp-records-label, .bp-landing .bp-organized-label {
+    position: absolute; left: 50%; display: flex; align-items: center; gap: 7px; padding: 8px 13px; border-radius: 999px;
+    font-size: 11px; font-weight: 700; white-space: nowrap;
+  }
+  .bp-landing .bp-records-label { top: 5%; border: 1px solid rgba(14,47,29,.1); background: rgba(255,252,245,.96); color: var(--g-deep); box-shadow: 0 8px 25px rgba(14,47,29,.07); transform: translate(-50%, 15px); animation: bpRecordsLabel 5.2s ease both; letter-spacing: .04em; }
+  .bp-landing .bp-records-label-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--g); }
+  .bp-landing .bp-record-card {
+    position: absolute; display: flex; align-items: center; gap: 10px; width: min(236px, 48%); min-height: 68px; padding: 12px;
+    border: 1px solid rgba(14,47,29,.11); border-radius: 14px; background: #FFFCF5; box-shadow: 0 14px 38px rgba(14,47,29,.12);
+    opacity: 0; animation: bpRecordAssemble 5.2s var(--ease) both; animation-delay: calc(var(--record-index) * 100ms);
+  }
+  .bp-landing .bp-record-csv { top: 20%; left: -3%; --record-x: -75px; --record-y: -40px; --record-rotate: -12deg; }
+  .bp-landing .bp-record-invoice { top: 19%; right: -2%; --record-x: 75px; --record-y: -45px; --record-rotate: 11deg; }
+  .bp-landing .bp-record-stock { bottom: 20%; left: -4%; --record-x: -80px; --record-y: 45px; --record-rotate: 9deg; }
+  .bp-landing .bp-record-message { right: -2%; bottom: 19%; --record-x: 80px; --record-y: 45px; --record-rotate: -10deg; }
+  .bp-landing .bp-record-icon { display: grid; flex: 0 0 34px; width: 34px; height: 34px; place-items: center; border-radius: 10px; background: var(--tint2); color: var(--g); }
+  .bp-landing .bp-record-copy { display: grid; min-width: 0; gap: 3px; }
+  .bp-landing .bp-record-copy strong { overflow: hidden; color: var(--g-deep); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+  .bp-landing .bp-record-copy small { color: #6B796F; font-size: 10px; line-height: 1.4; }
+  .bp-landing .bp-record-type { margin-left: auto; color: #6B796F; font-size: 9px; font-weight: 700; }
+  .bp-landing .bp-records-transform { position: absolute; top: 50%; left: 50%; display: flex; align-items: center; gap: 9px; opacity: 0; transform: translate(-50%, -50%) scale(.6); animation: bpTransformPulse 5.2s ease both; }
+  .bp-landing .bp-transform-line { width: 24px; height: 1px; background: rgba(30,107,60,.5); }
+  .bp-landing .bp-transform-icon { display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid rgba(30,107,60,.2); border-radius: 50%; background: var(--tint2); color: var(--g); box-shadow: 0 0 0 7px rgba(30,107,60,.07); }
+  .bp-landing .bp-organized-label { bottom: 5%; border: 1px solid rgba(30,107,60,.18); background: #F0F8F0; color: #1F5A3A; opacity: 0; transform: translate(-50%, -8px); animation: bpOrganizedLabel 5.2s ease both; }
+  .bp-landing .bp-organized-check { display: grid; width: 16px; height: 16px; place-items: center; border-radius: 50%; background: var(--g); color: #fff; }
+  .bp-landing .bp-clarity-dashboard { transform-origin: center; animation: bpDashboardReveal 5.2s var(--ease) both; }
+  .bp-landing .bp-assemble-heading, .bp-landing .bp-assemble-metrics, .bp-landing .bp-assemble-lower { animation: bpDashboardContentReveal 5.2s ease both; }
+  .bp-landing .bp-assemble-heading { animation-delay: 1.5s; }
+  .bp-landing .bp-assemble-metrics { animation-delay: 1.7s; }
+  .bp-landing .bp-assemble-lower { animation-delay: 1.9s; }
+  .bp-landing .bp-assemble-note-one { animation: bpAssembleNoteOne 5.2s ease both; }
+  .bp-landing .bp-assemble-note-two { animation: bpAssembleNoteTwo 5.2s ease both; }
+
+  /* ---------- marquee ---------- */
+  .bp-landing .bp-marquee { overflow: hidden; border-block: 1px solid var(--line); background: #fff; padding: 20px 0; }
+  .bp-landing .bp-marquee-track { display: flex; width: max-content; animation: bpMarquee 36s linear infinite; }
+  .bp-landing .bp-marquee:hover .bp-marquee-track { animation-play-state: paused; }
+  .bp-landing .bp-marquee-item { display: inline-flex; align-items: center; gap: 26px; padding-right: 26px; font: 600 clamp(22px, 2.6vw, 34px) var(--font-d); letter-spacing: -.035em; color: var(--g-deep); white-space: nowrap; }
+  .bp-landing .bp-marquee-item svg { color: var(--g); flex-shrink: 0; }
+
+  /* ---------- sections ---------- */
+  .bp-landing .bp-section { padding: clamp(80px, 9vw, 120px) clamp(20px, 7vw, 112px); }
   .bp-landing .bp-container { max-width: 1250px; margin: 0 auto; }
-  .bp-landing .bp-kicker {
-    display: inline-block; color: ${C.greenDark}; font-size: 10px;
-    font-weight: 800; letter-spacing: 1.5px; line-height: 1.5;
-  }
-  .bp-landing .bp-section-heading {
-    max-width: 760px; margin: 15px 0 18px;
-    font-size: clamp(34px, 4.1vw, 56px); font-weight: 700;
-  }
-  .bp-landing .bp-section-description { max-width: 620px; color: #718078; font-size: 14px; line-height: 1.95; }
-  .bp-landing .bp-human-section {
-    display: grid; grid-template-columns: 1fr 1fr; align-items: center;
-    gap: clamp(35px, 7vw, 100px); background: white;
-  }
-  .bp-landing .bp-human-image { position: relative; min-height: 410px; }
-  .bp-landing .bp-human-image img {
-    width: 100%; height: 410px; object-fit: cover;
-    border-radius: 13px; box-shadow: 0 20px 50px rgba(23,61,48,.12);
-  }
-  .bp-landing .bp-image-caption {
-    position: absolute; left: 18px; right: 18px; bottom: 18px;
-    padding: 17px 20px; border: 1px solid rgba(255,255,255,.3);
-    border-radius: 9px; background: rgba(23,61,48,.87);
-    backdrop-filter: blur(10px); color: white;
-  }
-  .bp-landing .bp-image-caption small { font-size: 9px; letter-spacing: 1.3px; color: #C6E6D3; font-weight: 800; }
-  .bp-landing .bp-image-caption p { margin: 5px 0 0; font-size: 14px; }
-  .bp-landing .bp-human-copy h2 { margin: 15px 0 20px; font-size: clamp(33px, 3.8vw, 49px); }
-  .bp-landing .bp-human-copy p { color: #718078; font-size: 14px; line-height: 1.95; }
-  .bp-landing .bp-human-copy .bp-emphasis { color: ${C.forest}; font-weight: 700; }
-  .bp-landing .bp-text-link {
-    display: inline-flex; align-items: center; gap: 9px; margin-top: 8px;
-    padding: 0; border: 0; background: transparent; color: ${C.greenDark};
-    font-size: 13px; font-weight: 800;
-  }
-  .bp-landing .bp-text-link svg { transition: transform .2s ease; }
+  .bp-landing .bp-kicker { display: inline-block; color: var(--g); font-size: 15px; font-weight: 600; letter-spacing: 0; line-height: 1.5; }
+  .bp-landing .bp-section-heading { max-width: 780px; margin: 14px 0 18px; font-size: clamp(36px, 4.4vw, 60px); font-weight: 700; letter-spacing: -.04em; }
+  .bp-landing .bp-section-description { max-width: 640px; color: var(--muted); font-size: 17px; line-height: 1.75; }
+  .bp-landing .bp-center-heading { text-align: center; margin: 0 auto 52px; max-width: 800px; }
+  .bp-landing .bp-center-heading .bp-section-heading { margin-left: auto; margin-right: auto; }
+  .bp-landing .bp-center-heading .bp-section-description { margin: 0 auto; }
+
+  .bp-landing .bp-human-section { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: clamp(35px, 7vw, 100px); background: #fff; }
+  .bp-landing .bp-human-image { position: relative; min-height: 440px; }
+  .bp-landing .bp-frame { position: relative; height: 440px; overflow: hidden; border-radius: 20px; background: var(--tint2); box-shadow: 0 24px 60px rgba(14,47,29,.14); }
+  .bp-landing .bp-frame-sm { height: 280px; border-radius: 12px; box-shadow: none; }
+  .bp-landing .bp-image-caption { position: absolute; left: 18px; right: 18px; bottom: 18px; padding: 17px 20px; border: 1px solid rgba(255,255,255,.28); border-radius: 12px; background: rgba(14,47,29,.86); backdrop-filter: blur(10px); color: #fff; }
+  .bp-landing .bp-image-caption small { display: block; font-size: 13px; color: #BFE6CD; font-weight: 600; }
+  .bp-landing .bp-image-caption p { margin: 4px 0 0; font-size: 16px; }
+  .bp-landing .bp-human-copy h2 { margin: 14px 0 20px; font-size: clamp(34px, 3.9vw, 52px); }
+  .bp-landing .bp-human-copy p { color: var(--muted); font-size: 17px; line-height: 1.8; }
+  .bp-landing .bp-human-copy .bp-emphasis { color: var(--g-deep); font-weight: 600; }
+  .bp-landing .bp-text-link { display: inline-flex; align-items: center; gap: 9px; margin-top: 8px; padding: 0; border: 0; background: transparent; color: var(--g); font-size: 15px; font-weight: 600; }
+  .bp-landing .bp-text-link svg { transition: transform .2s var(--ease); }
   .bp-landing .bp-text-link:hover svg { transform: translateX(5px); }
 
-  .bp-landing .bp-features { background: #F3F5F0; }
-  // .bp-landing .bp-center-heading { text-align: center; margin: 0 auto 45px; }
-  // .bp-landing .bp-center-heading .bp-section-description { margin: auto; }
-  .bp-landing .bp-feature-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 20px; }
-  .bp-landing .bp-feature-card {
-    min-width: 0; overflow: hidden; background: white;
-    border: 1px solid #E5EAE3; border-radius: 13px;
-    transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease;
-  }
-  .bp-landing .bp-feature-card:hover {
-    transform: translateY(-7px); border-color: #C3DFCC;
-    box-shadow: 0 20px 42px rgba(23,61,48,.09);
-  }
-  .bp-landing .bp-feature-image { position: relative; height: 205px; overflow: hidden; background: #E6ECE4; }
-  .bp-landing .bp-feature-image img, .bp-landing .bp-story-image img, .bp-landing .bp-agent-image img {
-    width: 100%; height: 100%; object-fit: cover;
-    transition: transform .65s cubic-bezier(.2,.7,.2,1);
-  }
-  .bp-landing .bp-feature-card:hover .bp-feature-image img,
-  .bp-landing .bp-story-card:hover .bp-story-image img,
-  .bp-landing .bp-agent-card:hover .bp-agent-image img { transform: scale(1.06); }
-  .bp-landing .bp-image-number {
-    position: absolute; right: 13px; bottom: 13px; padding: 6px 9px;
-    border: 1px solid rgba(255,255,255,.4); border-radius: 6px;
-    background: rgba(23,61,48,.8); color: white; font-size: 10px; font-weight: 800;
-  }
-  .bp-landing .bp-feature-copy { padding: 23px; }
-  .bp-landing .bp-card-label { color: ${C.greenDark}; font-size: 9px; font-weight: 800; letter-spacing: 1px; }
-  .bp-landing .bp-feature-copy h3 { margin: 11px 0; font-size: 22px; }
-  .bp-landing .bp-feature-copy p { color: #758178; font-size: 12px; line-height: 1.9; }
-  .bp-landing .bp-card-link {
-    display: inline-flex; align-items: center; gap: 6px;
-    margin-top: 4px; color: ${C.forest}; font-size: 11px; font-weight: 800;
-  }
+  .bp-landing .bp-features { background: #F1F5EE; }
+  .bp-landing .bp-feature-grid, .bp-landing .bp-agent-grid, .bp-landing .bp-story-grid { display: grid; gap: 20px; }
+  .bp-landing .bp-feature-grid, .bp-landing .bp-story-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .bp-landing .bp-feature-grid > .bp-reveal, .bp-landing .bp-agent-grid > .bp-reveal, .bp-landing .bp-story-grid > .bp-reveal { display: flex; }
+  .bp-landing .bp-feature-grid > .bp-reveal > article, .bp-landing .bp-agent-grid > .bp-reveal > article, .bp-landing .bp-story-grid > .bp-reveal > article { flex: 1; min-width: 0; }
+  .bp-landing .bp-feature-card { overflow: hidden; background: #fff; border: 1px solid var(--line); border-radius: 18px; display: flex; flex-direction: column; transition: transform .3s var(--ease), box-shadow .3s, border-color .3s; }
+  .bp-landing .bp-feature-card:hover { transform: translateY(-7px); border-color: #BFDCC9; box-shadow: 0 24px 48px rgba(14,47,29,.1); }
+  .bp-landing .bp-feature-image, .bp-landing .bp-story-image, .bp-landing .bp-agent-image { position: relative; overflow: hidden; background: #E3EBE1; }
+  .bp-landing .bp-feature-image { height: 220px; }
+  .bp-landing .bp-feature-image .si, .bp-landing .bp-story-image .si, .bp-landing .bp-agent-image .si { transform: scale(1.16); transition: transform 1.2s var(--ease); }
+  .bp-landing .bp-visible .bp-feature-image .si, .bp-landing .bp-visible .bp-story-image .si, .bp-landing .bp-visible .bp-agent-image .si { transform: scale(1); }
+  .bp-landing .bp-feature-card:hover .bp-feature-image .si, .bp-landing .bp-story-card:hover .bp-story-image .si, .bp-landing .bp-agent-card:hover .bp-agent-image .si { transform: scale(1.06); }
+  .bp-landing .bp-image-number { position: absolute; right: 13px; bottom: 13px; padding: 5px 10px; border: 1px solid rgba(255,255,255,.4); border-radius: 7px; background: rgba(14,47,29,.8); color: #fff; font-size: 12px; font-weight: 700; }
+  .bp-landing .bp-feature-copy { padding: 26px; display: flex; flex-direction: column; flex: 1; }
+  .bp-landing .bp-card-label { color: var(--g); font-size: 14px; font-weight: 600; }
+  .bp-landing .bp-feature-copy h3 { margin: 10px 0; font-size: 25px; }
+  .bp-landing .bp-feature-copy p { color: var(--muted); font-size: 15px; line-height: 1.75; }
+  .bp-landing .bp-feature-copy .bp-cap-button { margin-top: auto; align-self: flex-start; }
 
-  .bp-landing .bp-wide-panel {
-    display: grid; grid-template-columns: .9fr 1.1fr; gap: 35px;
-    align-items: center; margin-top: 25px; padding: 35px;
-    overflow: hidden; border-radius: 14px; background: ${C.forest}; color: white;
-  }
-  .bp-landing .bp-wide-panel h3 { margin: 13px 0; font-size: clamp(25px,3vw,38px); }
-  .bp-landing .bp-wide-panel p { color: #C1D2C6; font-size: 13px; line-height: 1.9; }
-  .bp-landing .bp-wide-panel .bp-kicker { color: #9DE1BB; }
-  .bp-landing .bp-wide-panel img { width: 100%; height: 260px; object-fit: cover; border-radius: 9px; }
+  .bp-landing .bp-wide-panel { display: grid; grid-template-columns: .9fr 1.1fr; gap: 40px; align-items: center; margin-top: 26px; padding: 40px; overflow: hidden; border-radius: 22px; background: var(--g-deep); color: #fff; }
+  .bp-landing .bp-wide-panel h3 { margin: 13px 0; font-size: clamp(27px, 3vw, 42px); }
+  .bp-landing .bp-wide-panel p { color: #C1D6C8; font-size: 16px; line-height: 1.75; }
+  .bp-landing .bp-wide-panel .bp-kicker { color: var(--mint); }
+  .bp-landing .bp-wide-panel .bp-frame { background: #1a4a2d; }
 
-  .bp-landing .bp-agents-section { position: relative; background: ${C.forest}; color: white; overflow: hidden; }
-  .bp-landing .bp-agents-section:before {
-    content: ''; position: absolute; width: 550px; height: 550px; top: -220px; right: -150px;
-    border-radius: 50%; background: rgba(14,156,107,.16); filter: blur(70px); pointer-events: none;
-  }
-  .bp-landing .bp-agents-section:after {
-    content: ''; position: absolute; width: 350px; height: 350px; bottom: -180px; left: -80px;
-    border-radius: 50%; background: rgba(151,205,165,.1); filter: blur(60px); pointer-events: none;
+  /* ---------- import records ---------- */
+  .bp-landing .bp-import-section { background: #fff; }
+  .bp-landing .bp-import-layout { display: grid; grid-template-columns: .78fr 1.22fr; gap: 52px; align-items: center; }
+  .bp-landing .bp-import-copy .bp-section-heading { margin-bottom: 17px; }
+  .bp-landing .bp-import-copy .bp-section-description { margin-bottom: 26px; }
+  .bp-landing .bp-import-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .bp-landing .bp-import-card { min-height: 170px; padding: 22px; border: 1px solid var(--line); border-radius: 16px; background: linear-gradient(145deg, #fff, #F6FAF5); transition: transform .25s var(--ease), border-color .25s, box-shadow .25s; }
+  .bp-landing .bp-import-grid > .bp-reveal { display: flex; }
+  .bp-landing .bp-import-grid > .bp-reveal > article { flex: 1; min-width: 0; }
+  .bp-landing .bp-import-grid > .bp-import-wide { grid-column: 1/-1; }
+  .bp-landing .bp-import-card:hover { transform: translateY(-4px); border-color: #B6D9C2; box-shadow: 0 16px 32px rgba(14,47,29,.08); }
+  .bp-landing .bp-import-icon, .bp-landing .bp-recommend-icon { display: grid; place-items: center; width: 44px; height: 44px; margin-bottom: 14px; border-radius: 12px; color: var(--g); background: var(--tint2); }
+  .bp-landing .bp-import-card h3 { margin-bottom: 7px; font-size: 19px; letter-spacing: -.03em; }
+  .bp-landing .bp-import-card p { margin: 0; color: var(--muted); font-size: 14.5px; line-height: 1.7; }
+  .bp-landing .bp-import-note { display: flex; align-items: flex-start; gap: 11px; margin-top: 24px; padding: 16px 20px; border-radius: 12px; background: #F1F6F0; color: #46594D; }
+  .bp-landing .bp-import-note svg { flex-shrink: 0; margin-top: 3px; color: var(--g); }
+  .bp-landing .bp-import-note p { margin: 0; font-size: 14.5px; line-height: 1.7; }
+
+  /* ---------- agents ---------- */
+  .bp-landing .bp-agents-section { position: relative; background: var(--g-deep); color: #fff; overflow: hidden; }
+  .bp-landing .bp-agents-section::before { content: ""; position: absolute; width: 600px; height: 600px; top: -240px; right: -160px; border-radius: 50%; background: rgba(60,160,100,.2); filter: blur(80px); pointer-events: none; }
+  .bp-landing .bp-agents-section::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+    background-size: 60px 60px; -webkit-mask-image: linear-gradient(to bottom, #000, transparent 70%); mask-image: linear-gradient(to bottom, #000, transparent 70%);
   }
   .bp-landing .bp-agents-inner { position: relative; z-index: 1; }
-  .bp-landing .bp-agents-header {
-    display: grid; grid-template-columns: 1.05fr .8fr; gap: 50px;
-    align-items: end; margin-bottom: 42px;
-  }
-  .bp-landing .bp-agents-header .bp-kicker { color: #9DE1BB; }
-  .bp-landing .bp-agents-header h2 { margin: 14px 0 0; font-size: clamp(36px,4.5vw,60px); }
-  .bp-landing .bp-agents-header h2 span { color: #9DE1BB; }
-  .bp-landing .bp-agents-header p { margin-bottom: 4px; color: #C1D2C6; font-size: 14px; line-height: 1.9; }
-  .bp-landing .bp-agent-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 17px; }
-  .bp-landing .bp-agent-card {
-    display: flex; flex-direction: column; min-width: 0; overflow: hidden;
-    border: 1px solid rgba(255,255,255,.14); border-radius: 13px;
-    background: rgba(255,255,255,.055);
-    transition: transform .3s ease, border-color .3s ease, background .3s ease;
-  }
-  .bp-landing .bp-agent-card:hover {
-    transform: translateY(-8px); border-color: rgba(157,225,187,.55);
-    background: rgba(255,255,255,.09);
-  }
-  .bp-landing .bp-agent-image { position: relative; height: 190px; overflow: hidden; background: #294D3D; }
-  .bp-landing .bp-agent-image:after {
-    content: ''; position: absolute; inset: 0;
-    background: linear-gradient(to top,rgba(17,43,32,.76),transparent 65%);
-  }
-  .bp-landing .bp-agent-image-tag {
-    position: absolute; z-index: 1; left: 14px; bottom: 13px;
-    display: inline-flex; align-items: center; gap: 7px;
-    padding: 7px 10px; border-radius: 7px; color: white;
-    border: 1px solid rgba(255,255,255,.25); background: rgba(23,61,48,.55);
-    backdrop-filter: blur(8px); font-size: 9px; font-weight: 800; letter-spacing: .7px;
-  }
-  .bp-landing .bp-agent-copy { display: flex; flex-direction: column; flex: 1; padding: 22px; }
-  .bp-landing .bp-agent-number { color: #9DE1BB; font-size: 10px; font-weight: 800; letter-spacing: 1px; }
-  .bp-landing .bp-agent-copy h3 { margin: 11px 0; font-size: 23px; }
-  .bp-landing .bp-agent-copy > p { color: #C0D0C4; font-size: 12px; line-height: 1.9; }
-  .bp-landing .bp-agent-list { display: grid; gap: 9px; margin: 8px 0 20px; padding: 0; list-style: none; }
-  .bp-landing .bp-agent-list li { display: flex; align-items: flex-start; gap: 8px; color: #E0E9E1; font-size: 11px; }
-  .bp-landing .bp-agent-list svg { flex-shrink: 0; margin-top: 3px; color: #9DE1BB; }
-  .bp-landing .bp-agent-note {
-    display: flex; align-items: flex-start; gap: 12px; margin-top: auto;
-    padding-top: 15px; border-top: 1px solid rgba(255,255,255,.12);
-    color: #9FB8A7; font-size: 10px; line-height: 1.7;
-  }
-  .bp-landing .bp-agent-note svg { flex-shrink: 0; color: #9DE1BB; }
-  .bp-landing .bp-agent-bottom {
-    display: flex; align-items: center; justify-content: space-between; gap: 25px;
-    margin-top: 30px; padding: 23px 25px; border: 1px solid rgba(255,255,255,.14);
-    border-radius: 11px; background: rgba(255,255,255,.045);
-  }
-  .bp-landing .bp-agent-bottom p { margin: 0; color: #C1D2C6; font-size: 12px; }
-  .bp-landing .bp-agent-bottom strong { color: white; }
-  .bp-landing .bp-agent-bottom .bp-button { flex-shrink: 0; background: #9DE1BB; color: ${C.forest}; }
+  .bp-landing .bp-agents-header { display: grid; grid-template-columns: 1.05fr .8fr; gap: 50px; align-items: end; margin-bottom: 44px; }
+  .bp-landing .bp-agents-header .bp-kicker { color: var(--mint); }
+  .bp-landing .bp-agents-header h2 { margin: 14px 0 0; font-size: clamp(38px, 4.6vw, 64px); }
+  .bp-landing .bp-agents-header h2 span { color: var(--mint); }
+  .bp-landing .bp-agents-header p { margin-bottom: 4px; color: #C1D6C8; font-size: 17px; line-height: 1.75; }
+  .bp-landing .bp-agent-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+  .bp-landing .bp-agent-card { display: flex; flex-direction: column; overflow: hidden; border: 1px solid rgba(255,255,255,.14); border-radius: 18px; background: rgba(255,255,255,.055); transition: transform .3s var(--ease), border-color .3s, background .3s; }
+  .bp-landing .bp-agent-card:hover { transform: translateY(-8px); border-color: rgba(143,217,171,.55); background: rgba(255,255,255,.09); }
+  .bp-landing .bp-agent-image { height: 200px; background: #244d34; }
+  .bp-landing .bp-agent-image::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(10,38,22,.78), transparent 65%); }
+  .bp-landing .bp-agent-image-tag { position: absolute; z-index: 1; left: 14px; bottom: 13px; display: inline-flex; align-items: center; gap: 7px; padding: 7px 11px; border-radius: 8px; color: #fff; border: 1px solid rgba(255,255,255,.25); background: rgba(14,47,29,.55); backdrop-filter: blur(8px); font-size: 11px; font-weight: 700; letter-spacing: .06em; }
+  .bp-landing .bp-agent-copy { display: flex; flex-direction: column; flex: 1; padding: 24px; }
+  .bp-landing .bp-agent-number { color: var(--mint); font-size: 14px; font-weight: 600; }
+  .bp-landing .bp-agent-copy h3 { margin: 10px 0; font-size: 26px; }
+  .bp-landing .bp-agent-copy > p { color: #C0D4C6; font-size: 15px; line-height: 1.7; }
+  .bp-landing .bp-agent-list { display: grid; gap: 10px; margin: 8px 0 20px; padding: 0; list-style: none; }
+  .bp-landing .bp-agent-list li { display: flex; align-items: flex-start; gap: 9px; color: #E0EAE2; font-size: 14px; }
+  .bp-landing .bp-agent-list svg { flex-shrink: 0; margin-top: 4px; color: var(--mint); }
+  .bp-landing .bp-agent-note { display: flex; align-items: flex-start; gap: 12px; margin-top: auto; padding-top: 16px; border-top: 1px solid rgba(255,255,255,.12); color: #A2BBAA; font-size: 12.5px; line-height: 1.65; }
+  .bp-landing .bp-agent-note svg { flex-shrink: 0; color: var(--mint); }
+  .bp-landing .bp-agent-bottom { display: flex; align-items: center; justify-content: space-between; gap: 25px; margin-top: 32px; padding: 24px 28px; border: 1px solid rgba(255,255,255,.14); border-radius: 16px; background: rgba(255,255,255,.045); }
+  .bp-landing .bp-agent-bottom p { margin: 0; color: #C1D6C8; font-size: 15.5px; }
+  .bp-landing .bp-agent-bottom strong { color: #fff; }
+  .bp-landing .bp-agent-bottom .bp-button, .bp-landing .bp-closing .bp-button { flex-shrink: 0; background: var(--mint); color: var(--g-deep); box-shadow: none; }
+  .bp-landing .bp-agent-bottom .bp-button:hover, .bp-landing .bp-closing .bp-button:hover { background: #A9E8C1; box-shadow: 0 12px 28px rgba(0,0,0,.25); }
 
-  .bp-landing .bp-stories { background: white; }
-  .bp-landing .bp-story-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 20px; }
-  .bp-landing .bp-story-card {
-    overflow: hidden; border: 1px solid ${C.border}; border-radius: 12px;
-    background: white; transition: transform .3s ease, box-shadow .3s ease;
-  }
-  .bp-landing .bp-story-card:hover { transform: translateY(-6px); box-shadow: 0 18px 35px rgba(23,61,48,.08); }
-  .bp-landing .bp-story-image { height: 220px; position: relative; overflow: hidden; background: #E9EEE7; }
-  .bp-landing .bp-story-tag {
-    position: absolute; left: 14px; bottom: 14px; padding: 6px 9px;
-    border-radius: 5px; background: white; color: ${C.forest};
-    font-size: 9px; font-weight: 800; letter-spacing: .8px;
-  }
-  .bp-landing .bp-story-copy { padding: 22px; }
-  .bp-landing .bp-story-copy h3 { margin: 0 0 12px; font-size: 22px; }
-  .bp-landing .bp-story-copy p { margin: 0; color: #758178; font-size: 12px; line-height: 1.9; }
+  /* ---------- stories ---------- */
+  .bp-landing .bp-stories { background: #fff; }
+  .bp-landing .bp-story-card { display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: #fff; transition: transform .3s var(--ease), box-shadow .3s; }
+  .bp-landing .bp-story-card:hover { transform: translateY(-6px); box-shadow: 0 22px 44px rgba(14,47,29,.09); }
+  .bp-landing .bp-story-image { height: 230px; }
+  .bp-landing .bp-story-tag { position: absolute; left: 14px; bottom: 14px; padding: 6px 11px; border-radius: 7px; background: #fff; color: var(--g-deep); font-size: 11px; font-weight: 700; letter-spacing: .05em; }
+  .bp-landing .bp-story-copy { padding: 24px; }
+  .bp-landing .bp-story-copy h3 { margin: 0 0 12px; font-size: 24px; }
+  .bp-landing .bp-story-copy p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.75; }
 
-  .bp-landing .bp-video-section { display: grid; grid-template-columns: .8fr 1.2fr; align-items: center; gap: 65px; }
-  .bp-landing .bp-video-copy h2 { margin: 14px 0 20px; font-size: clamp(34px,4vw,50px); }
-  .bp-landing .bp-video-copy p { color: #718078; font-size: 13px; line-height: 1.95; }
-  .bp-landing .bp-video-wrap {
-    position: relative; overflow: hidden; min-height: 340px;
-    border-radius: 15px; background: ${C.forest};
-    box-shadow: 0 25px 60px rgba(23,61,48,.16);
-  }
+  /* ---------- video ---------- */
+  .bp-landing .bp-video-section { display: grid; grid-template-columns: .8fr 1.2fr; align-items: center; gap: 66px; }
+  .bp-landing .bp-video-copy h2 { margin: 14px 0 20px; font-size: clamp(36px, 4.2vw, 54px); }
+  .bp-landing .bp-video-copy p { color: var(--muted); font-size: 16.5px; line-height: 1.8; }
+  .bp-landing .bp-video-wrap { position: relative; overflow: hidden; min-height: 360px; border-radius: 22px; background: var(--g-deep); box-shadow: 0 30px 70px rgba(14,47,29,.2); }
   .bp-landing .bp-video-wrap video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-  .bp-landing .bp-video-overlay {
-    position: absolute; inset: 0; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 15px; color: white;
-    background: linear-gradient(0deg,rgba(15,39,28,.62),rgba(15,39,28,.15));
-    pointer-events: none;
-  }
+  .bp-landing .bp-video-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; color: #fff; background: linear-gradient(0deg, rgba(10,36,21,.64), rgba(10,36,21,.14)); pointer-events: none; }
   .bp-landing .bp-video-overlay button { pointer-events: auto; }
-  .bp-landing .bp-video-overlay small { font-size: 9px; font-weight: 800; letter-spacing: 1.4px; }
-  .bp-landing .bp-video-play {
-    display: grid; place-items: center; width: 74px; height: 74px;
-    border: 1px solid rgba(255,255,255,.6); border-radius: 50%;
-    background: rgba(255,255,255,.15); color: white;
-    backdrop-filter: blur(10px); transition: transform .2s ease, background .2s ease;
-  }
+  .bp-landing .bp-video-overlay small { font-size: 12px; font-weight: 700; letter-spacing: .1em; }
+  .bp-landing .bp-video-play { display: grid; place-items: center; width: 78px; height: 78px; border: 1px solid rgba(255,255,255,.6); border-radius: 50%; background: rgba(255,255,255,.15); color: #fff; backdrop-filter: blur(10px); transition: transform .2s var(--ease), background .2s; }
   .bp-landing .bp-video-play:hover { transform: scale(1.08); background: rgba(255,255,255,.27); }
-  .bp-landing .bp-video-disclaimer { margin: 10px 0 0; color: #89958D; font-size: 10px; }
+  .bp-landing .bp-video-disclaimer { margin: 12px 0 0; color: #6F7C73; font-size: 13px; }
 
-  .bp-landing .bp-how { background: #F0F4EF; }
-  .bp-landing .bp-how-grid { display: grid; grid-template-columns: .8fr 1.2fr; gap: 70px; align-items: center; }
-  .bp-landing .bp-how-copy h2 { margin: 15px 0 20px; font-size: clamp(35px,4vw,52px); }
-  .bp-landing .bp-how-copy p { color: #718078; font-size: 13px; line-height: 1.95; }
-  .bp-landing .bp-steps { display: grid; gap: 12px; }
-  .bp-landing .bp-step {
-    display: grid; grid-template-columns: 40px 1fr 20px; align-items: start;
-    gap: 14px; padding: 22px; border: 1px solid #E1E8E0; border-radius: 10px;
-    background: white; transition: transform .25s ease, border-color .25s ease;
-  }
-  .bp-landing .bp-step:hover { transform: translateX(4px); border-color: #B7D9C2; }
-  .bp-landing .bp-step-number {
-    display: grid; place-items: center; width: 38px; height: 38px;
-    border-radius: 9px; background: ${C.paleGreen}; color: ${C.greenDark};
-    font-size: 11px; font-weight: 800;
-  }
-  .bp-landing .bp-step strong { font-size: 13px; }
-  .bp-landing .bp-step p { margin: 6px 0 0; color: #758178; font-size: 11px; line-height: 1.8; }
-  .bp-landing .bp-step > svg { color: ${C.green}; margin-top: 3px; }
+  /* ---------- how it works ---------- */
+  .bp-landing .bp-how { background: #EEF3EC; }
+  .bp-landing .bp-how-grid { display: grid; grid-template-columns: .8fr 1.2fr; gap: 72px; align-items: center; }
+  .bp-landing .bp-how-copy h2 { margin: 14px 0 20px; font-size: clamp(36px, 4.2vw, 56px); }
+  .bp-landing .bp-how-copy p { color: var(--muted); font-size: 16.5px; line-height: 1.8; }
+  .bp-landing .bp-steps { position: relative; display: grid; gap: 14px; }
+  .bp-landing .bp-steps::before, .bp-landing .bp-steps::after { content: ""; position: absolute; left: 41px; top: 28px; bottom: 28px; width: 2px; border-radius: 2px; }
+  .bp-landing .bp-steps::before { background: #D3E1D4; }
+  .bp-landing .bp-steps::after { background: var(--g); transform-origin: top; transform: scaleY(var(--p, 0)); }
+  .bp-landing .bp-step { position: relative; z-index: 1; display: grid; grid-template-columns: 42px 1fr 22px; align-items: start; gap: 16px; padding: 24px; border: 1px solid #DDE6DC; border-radius: 16px; background: #fff; transition: transform .25s var(--ease), border-color .25s; }
+  .bp-landing .bp-step:hover { transform: translateX(5px); border-color: #A9CFB6; }
+  .bp-landing .bp-step-number { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 11px; background: var(--g); color: #fff; font: 700 14px var(--font-d); }
+  .bp-landing .bp-step strong { font: 700 19px var(--font-d); letter-spacing: -.025em; }
+  .bp-landing .bp-step p { margin: 6px 0 0; color: var(--muted); font-size: 15px; line-height: 1.7; }
+  .bp-landing .bp-step > svg { color: var(--g); margin-top: 4px; }
 
-  .bp-landing .bp-principles { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 35px; }
+  .bp-landing .bp-principles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 35px; }
   .bp-landing .bp-principle { padding: 10px 0; }
-  .bp-landing .bp-principle-icon {
-    display: grid; place-items: center; width: 47px; height: 47px;
-    margin-bottom: 19px; border-radius: 12px; background: ${C.paleGreen}; color: ${C.greenDark};
-  }
-  .bp-landing .bp-principle h3 { margin-bottom: 9px; font-size: 18px; letter-spacing: -.5px; }
-  .bp-landing .bp-principle p { margin: 0; color: #758178; font-size: 12px; line-height: 1.9; }
+  .bp-landing .bp-principle-icon { display: grid; place-items: center; width: 52px; height: 52px; margin-bottom: 20px; border-radius: 14px; background: var(--tint2); color: var(--g); }
+  .bp-landing .bp-principle h3 { margin-bottom: 9px; font-size: 22px; letter-spacing: -.03em; }
+  .bp-landing .bp-principle p { margin: 0; color: var(--muted); font-size: 15.5px; line-height: 1.75; }
 
-  .bp-landing .bp-closing {
-    position: relative; overflow: hidden; margin: 0 clamp(16px,4vw,60px) 24px;
-    padding: 80px 25px; border-radius: 18px; background: ${C.forest}; color: white;
-    text-align: center;
-  }
-  .bp-landing .bp-closing:before, .bp-landing .bp-closing:after {
-    content: ''; position: absolute; width: 360px; height: 360px; border-radius: 50%;
-    border: 1px solid rgba(157,225,187,.18); pointer-events: none;
-  }
-  .bp-landing .bp-closing:before { top: -250px; left: -100px; box-shadow: 0 0 0 30px rgba(157,225,187,.025),0 0 0 60px rgba(157,225,187,.02); }
-  .bp-landing .bp-closing:after { bottom: -280px; right: -80px; box-shadow: 0 0 0 35px rgba(157,225,187,.025),0 0 0 70px rgba(157,225,187,.02); }
-  .bp-landing .bp-closing-content { position: relative; z-index: 1; max-width: 700px; margin: auto; }
-  .bp-landing .bp-closing .bp-kicker { color: #9DE1BB; }
-  .bp-landing .bp-closing h2 { margin: 17px 0; font-size: clamp(38px,5vw,62px); }
-  .bp-landing .bp-closing h2 span { color: #9DE1BB; }
-  .bp-landing .bp-closing p { max-width: 550px; margin: 0 auto 25px; color: #C1D2C6; font-size: 13px; line-height: 1.9; }
-  .bp-landing .bp-closing .bp-button { background: #9DE1BB; color: ${C.forest}; }
-  .bp-landing .bp-closing-note { display: block; margin-top: 18px; color: #A8BDAE; font-size: 10px; }
+  /* ---------- recommendations ---------- */
+  .bp-landing .bp-recommend-section { background: #F1F5EE; }
+  .bp-landing .bp-recommend-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+  .bp-landing .bp-recommend-grid > .bp-reveal { display: flex; }
+  .bp-landing .bp-recommend-card { padding: 28px; border: 1px solid var(--line); border-radius: 18px; background: #fff; transition: transform .25s var(--ease), box-shadow .25s; }
+  .bp-landing .bp-recommend-card:hover { transform: translateY(-5px); box-shadow: 0 18px 36px rgba(14,47,29,.09); }
+  .bp-landing .bp-recommend-label { display: block; margin-bottom: 8px; color: var(--g); font-size: 14px; font-weight: 600; }
+  .bp-landing .bp-recommend-card h3 { margin-bottom: 10px; font-size: 23px; line-height: 1.3; }
+  .bp-landing .bp-recommend-card p, .bp-landing .bp-recommend-disclaimer { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.75; }
+  .bp-landing .bp-recommend-disclaimer { margin-top: 24px; text-align: center; font-size: 13.5px; }
 
-  .bp-landing .bp-footer {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
-    align-items: center; padding: 30px clamp(20px,6vw,90px);
-    border-top: 1px solid ${C.border}; background: white;
-  }
-  .bp-landing .bp-footer-tagline { color: #7C8980; font-size: 11px; }
-  .bp-landing .bp-footer-links {
-    display: flex; align-items: center; justify-content: flex-end;
-    flex-wrap: wrap; gap: 18px;
-  }
-  .bp-landing .bp-footer-links a, .bp-landing .bp-footer-links button {
-    border: 0; padding: 0; background: transparent; color: #68766D; font-size: 11px;
-  }
-  .bp-landing .bp-footer-links a:hover, .bp-landing .bp-footer-links button:hover { color: ${C.greenDark}; }
-  .bp-landing .bp-copyright { grid-column: 1/-1; margin: 0; color: #9AA49D; font-size: 10px; }
+  /* ---------- FAQ ---------- */
+  .bp-landing .bp-faq-section { background: #fff; }
+  .bp-landing .bp-faq-layout { display: grid; grid-template-columns: .8fr 1.2fr; gap: clamp(35px, 7vw, 90px); align-items: start; }
+  .bp-landing .bp-faq-intro { position: sticky; top: 110px; }
+  .bp-landing .bp-faq-help { display: flex; align-items: flex-start; gap: 13px; margin-top: 28px; padding: 18px; border-radius: 14px; background: #F0F6EF; color: var(--g); }
+  .bp-landing .bp-faq-help span { display: grid; gap: 4px; }
+  .bp-landing .bp-faq-help strong { color: var(--g-deep); font-size: 15px; }
+  .bp-landing .bp-faq-help small { color: var(--muted); font-size: 14px; line-height: 1.6; }
+  .bp-landing .bp-faq-list { display: grid; gap: 10px; }
+  .bp-landing .bp-faq-item { overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: #fff; transition: border-color .2s, box-shadow .2s; }
+  .bp-landing .bp-faq-item[open] { border-color: #B9D9C2; box-shadow: 0 10px 24px rgba(14,47,29,.05); }
+  .bp-landing .bp-faq-item summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 22px; cursor: pointer; list-style: none; color: var(--g-deep); font-size: 16.5px; font-weight: 600; }
+  .bp-landing .bp-faq-item summary::-webkit-details-marker { display: none; }
+  .bp-landing .bp-faq-item summary svg { flex-shrink: 0; color: var(--g); transition: transform .25s var(--ease); }
+  .bp-landing .bp-faq-item[open] summary svg { transform: rotate(180deg); }
+  .bp-landing .bp-faq-item p { margin: 0; padding: 0 22px 22px; color: var(--muted); font-size: 15.5px; line-height: 1.8; }
+  .bp-landing .bp-faq-item[open] p { animation: bpFaqIn .35s var(--ease) both; }
 
-  .bp-landing .bp-reveal {
-    opacity: 0; transform: translateY(24px);
-    transition: opacity .75s cubic-bezier(.2,.7,.2,1), transform .75s cubic-bezier(.2,.7,.2,1);
-    transition-delay: var(--bp-delay,0ms);
-  }
-  .bp-landing .bp-reveal.bp-visible { opacity: 1; transform: translate(0,0); }
-  .bp-landing .bp-reveal-left { transform: translateX(-28px); }
-  .bp-landing .bp-reveal-right { transform: translateX(28px); }
+  /* ---------- closing ---------- */
+  .bp-landing .bp-closing { position: relative; overflow: hidden; margin: 0 clamp(16px, 4vw, 60px) 24px; padding: clamp(70px, 9vw, 110px) 25px; border-radius: 26px; background: radial-gradient(circle at 80% 10%, rgba(80,180,120,.22), transparent 45%), linear-gradient(120deg, #0E2F1D, #17512F); color: #fff; text-align: center; }
+  .bp-landing .bp-closing::before, .bp-landing .bp-closing::after { content: ""; position: absolute; width: 360px; height: 360px; border-radius: 50%; border: 1px solid rgba(143,217,171,.18); pointer-events: none; }
+  .bp-landing .bp-closing::before { top: -250px; left: -100px; box-shadow: 0 0 0 30px rgba(143,217,171,.025), 0 0 0 60px rgba(143,217,171,.02); }
+  .bp-landing .bp-closing::after { bottom: -280px; right: -80px; box-shadow: 0 0 0 35px rgba(143,217,171,.025), 0 0 0 70px rgba(143,217,171,.02); }
+  .bp-landing .bp-closing-content { position: relative; z-index: 1; max-width: 720px; margin: auto; }
+  .bp-landing .bp-closing .bp-kicker { color: var(--mint); }
+  .bp-landing .bp-closing h2 { margin: 16px 0; font-size: clamp(40px, 5.4vw, 72px); letter-spacing: -.045em; }
+  .bp-landing .bp-closing h2 span { color: var(--mint); }
+  .bp-landing .bp-closing p { max-width: 560px; margin: 0 auto 28px; color: #C1D6C8; font-size: 17px; line-height: 1.75; }
+  .bp-landing .bp-closing-note { display: block; margin-top: 20px; color: #A5BEAD; font-size: 13px; }
 
-  @keyframes bpPulse {
-    0%,100% { box-shadow: 0 0 0 3px rgba(14,156,107,.12); }
-    50% { box-shadow: 0 0 0 7px rgba(14,156,107,.025); }
-  }
-  @keyframes bpFloat {
-    0%,100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
-  }
-  @keyframes bpBarRise {
-    from { transform: scaleY(.15); opacity: .45; }
-    to { transform: scaleY(1); opacity: 1; }
-  }
+  /* ---------- footer ---------- */
+  .bp-landing .bp-footer-expanded { display: block; padding: 64px clamp(20px, 6vw, 90px) 24px; background: #0A2415; color: #fff; }
+  .bp-landing .bp-footer-main { display: grid; grid-template-columns: 1.3fr .8fr 1fr .9fr; gap: 40px; max-width: 1400px; margin: 0 auto; padding-bottom: 44px; }
+  .bp-landing .bp-footer-expanded .bp-brand-name { color: #fff; }
+  .bp-landing .bp-footer-expanded .bp-brand-mark { background: var(--mint); color: var(--g-deep); }
+  .bp-landing .bp-footer-tagline { display: block; margin: 18px 0 8px; color: #D7E6DA; font-size: 16px; }
+  .bp-landing .bp-footer-small { max-width: 290px; margin-bottom: 22px; color: #A9C1B0; font-size: 14px; line-height: 1.75; }
+  .bp-landing .bp-footer-column { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+  .bp-landing .bp-footer-column h3 { margin: 4px 0 8px; color: #fff; font-size: 16px; letter-spacing: -.01em; }
+  .bp-landing .bp-footer-column a, .bp-landing .bp-footer-column button { padding: 0; border: 0; background: transparent; color: #B2C7B8; font-size: 14.5px; text-align: left; transition: color .2s, transform .2s var(--ease); }
+  .bp-landing .bp-footer-column a:hover, .bp-landing .bp-footer-column button:hover { color: var(--mint); transform: translateX(3px); }
+  .bp-landing .bp-footer-how { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 25px; max-width: 1400px; margin: 0 auto; padding: 30px 0; border-top: 1px solid rgba(255,255,255,.13); border-bottom: 1px solid rgba(255,255,255,.13); }
+  .bp-landing .bp-footer-how > div { display: grid; grid-template-columns: 38px 1fr; column-gap: 13px; align-content: start; }
+  .bp-landing .bp-footer-step { grid-row: 1/3; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: rgba(143,217,171,.12); color: var(--mint); font-size: 12px; font-weight: 700; }
+  .bp-landing .bp-footer-how strong { margin: 2px 0 5px; color: #fff; font-size: 15px; }
+  .bp-landing .bp-footer-how p { grid-column: 2; margin: 0; color: #A9C1B0; font-size: 13.5px; line-height: 1.7; }
+  .bp-landing .bp-footer-bottom { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; max-width: 1400px; margin: 0 auto; padding-top: 22px; }
+  .bp-landing .bp-footer-bottom p { margin: 0; color: #8DA896; font-size: 13px; }
+  .bp-landing .bp-footer-bottom a { display: inline-flex; align-items: center; gap: 6px; color: var(--mint); font-size: 13px; font-weight: 600; }
 
- @media (min-width: 1500px) {
-  .bp-landing .bp-hero {
-    padding-top: 3px;
-    padding-bottom: 45px;
+  /* ---------- scroll reveal ---------- */
+  .bp-landing .bp-reveal { opacity: 0; transform: translateY(28px); transition: opacity .85s var(--ease), transform .85s var(--ease); transition-delay: var(--bp-delay, 0ms); }
+  .bp-landing .bp-reveal.bp-visible { opacity: 1; transform: translate(0, 0); }
+  .bp-landing .bp-reveal-left { transform: translateX(-32px); }
+  .bp-landing .bp-reveal-right { transform: translateX(32px); }
+
+  @keyframes bpPulse { 0%, 100% { box-shadow: 0 0 0 3px rgba(30,107,60,.12); } 50% { box-shadow: 0 0 0 7px rgba(30,107,60,.025); } }
+  @keyframes bpFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+  @keyframes bpBarRise { from { transform: scaleY(.15); opacity: .45; } to { transform: scaleY(1); opacity: 1; } }
+  @keyframes bpMarquee { to { transform: translateX(-50%); } }
+  @keyframes bpFaqIn { from { opacity: 0; transform: translateY(-6px); } }
+  @keyframes bpRecordsScene { 0%, 3% { opacity: 1; } 48% { opacity: 1; } 69%, 100% { opacity: 0; visibility: hidden; } }
+  @keyframes bpRecordsLabel { 0% { opacity: 0; transform: translate(-50%, 15px); } 8%, 38% { opacity: 1; transform: translate(-50%, 0); } 55%, 100% { opacity: 0; transform: translate(-50%, -10px); } }
+  @keyframes bpRecordAssemble {
+    0% { opacity: 0; transform: translate(var(--record-x), var(--record-y)) rotate(var(--record-rotate)) scale(.78); }
+    10%, 24% { opacity: 1; transform: translate(0, 0) rotate(var(--record-rotate)) scale(1); }
+    44% { opacity: 1; transform: translate(0, 0) rotate(0) scale(.96); }
+    62%, 100% { opacity: 0; transform: translate(0, -18px) rotate(0) scale(.82); }
   }
-}
+  @keyframes bpTransformPulse { 0%, 28% { opacity: 0; transform: translate(-50%, -50%) scale(.6); } 38%, 48% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 60%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.2); } }
+  @keyframes bpOrganizedLabel { 0%, 43% { opacity: 0; transform: translate(-50%, -8px); } 53%, 65% { opacity: 1; transform: translate(-50%, 0); } 75%, 100% { opacity: 0; transform: translate(-50%, 8px); } }
+  @keyframes bpDashboardReveal { 0%, 35% { opacity: .05; transform: translateY(22px) scale(.94); filter: blur(5px); } 55% { opacity: 1; transform: translateY(0) scale(1.015); filter: blur(0); } 68%, 100% { opacity: 1; transform: translateY(0) scale(1); filter: none; } }
+  @keyframes bpDashboardContentReveal { 0%, 34% { opacity: 0; transform: translateY(12px); } 54%, 100% { opacity: 1; transform: translateY(0); } }
+  @keyframes bpAssembleNoteOne { 0%, 43% { opacity: 0; transform: translate(-24px, 12px) scale(.9); } 58%, 100% { opacity: 1; transform: translate(0, 0) scale(1); } }
+  @keyframes bpAssembleNoteTwo { 0%, 47% { opacity: 0; transform: translate(24px, 12px) scale(.9); } 62%, 100% { opacity: 1; transform: translate(0, 0) scale(1); } }
+
+  /* ---------- responsive ---------- */
+  @media (min-width: 1500px) { .bp-landing .bp-hero { padding-top: 24px; padding-bottom: 56px; } }
   @media (max-width: 1100px) {
-    .bp-landing .bp-nav-links { gap: 17px; }
-    .bp-landing .bp-hero { grid-template-columns: 1fr; gap: 55px; padding-top: 65px; }
+    .bp-landing .bp-nav-links { gap: 18px; }
+    .bp-landing .bp-nav-links a { font-size: 14px; }
+    .bp-landing .bp-hero { grid-template-columns: 1fr; gap: 56px; padding-top: 60px; }
     .bp-landing .bp-hero-copy { max-width: 760px; }
-    .bp-landing .bp-dashboard-wrap { width: min(100%,760px); margin: 0 auto; }
-    .bp-landing .bp-dashboard-layout { min-height: 350px; }
+    .bp-landing .bp-dashboard-wrap { width: min(100%, 760px); margin: 0 auto; }
     .bp-landing .bp-floating-one { left: -10px; }
     .bp-landing .bp-floating-two { right: -8px; }
-    .bp-landing .bp-agent-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
-    .bp-landing .bp-agent-card:last-child { grid-column: 1/-1; }
-    .bp-landing .bp-agent-card:last-child .bp-agent-image { height: 230px; }
-    .bp-landing .bp-video-section, .bp-landing .bp-how-grid { gap: 35px; }
+    .bp-landing .bp-agent-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .bp-landing .bp-video-section, .bp-landing .bp-how-grid { gap: 36px; }
+    .bp-landing .bp-import-layout, .bp-landing .bp-faq-layout { grid-template-columns: 1fr; }
+    .bp-landing .bp-faq-intro { position: static; }
+    .bp-landing .bp-footer-main { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 860px) {
+    .bp-landing .bp-feature-grid, .bp-landing .bp-story-grid, .bp-landing .bp-recommend-grid { grid-template-columns: 1fr; }
   }
   @media (max-width: 760px) {
+    .bp-landing { font-size: 15.5px; }
     .bp-landing .bp-nav { min-height: 66px; padding: 10px 18px; gap: 12px; }
-    .bp-landing .bp-brand-name { font-size: 20px; }
+    .bp-landing .bp-brand-name { font-size: 22px; }
     .bp-landing .bp-brand-mark { width: 35px; height: 35px; }
     .bp-landing .bp-menu-toggle { display: inline-flex; margin-left: auto; }
-    .bp-landing .bp-nav-links {
-      position: absolute; top: calc(100% + 1px); left: 0; right: 0;
-      display: none; align-items: stretch; gap: 0; padding: 8px 18px 16px;
-      background: ${C.cream}; border-bottom: 1px solid ${C.border};
-      box-shadow: 0 15px 25px rgba(23,61,48,.07);
-    }
+    .bp-landing .bp-nav-links { position: absolute; top: calc(100% + 1px); left: 0; right: 0; display: none; align-items: stretch; gap: 0; padding: 8px 18px 16px; background: var(--cream); border-bottom: 1px solid var(--line); box-shadow: 0 15px 25px rgba(14,47,29,.07); }
     .bp-landing .bp-nav-links.is-open { display: flex; flex-direction: column; }
-    .bp-landing .bp-nav-links a { padding: 12px 4px; border-bottom: 1px solid #E9EDE7; }
+    .bp-landing .bp-nav-links a { padding: 13px 4px; border-bottom: 1px solid #E9EDE7; font-size: 16px; }
+    .bp-landing .bp-nav-links a::after { display: none; }
     .bp-landing .bp-nav-actions { gap: 10px; }
-    .bp-landing .bp-login { display: none; }
-    .bp-landing .bp-nav-actions .bp-button { min-height: 40px; padding: 0 12px; font-size: 11px; }
-    .bp-landing .bp-hero { padding: 55px 20px 60px; gap: 42px; }
-    .bp-landing .bp-hero h1 { font-size: clamp(39px,9.5vw,62px); }
-    .bp-landing .bp-hero-description { font-size: 13px; }
+    .bp-landing .bp-login-btn { display: none; }
+    .bp-landing .bp-nav-actions .bp-button { min-height: 42px; padding: 0 14px; font-size: 13.5px; }
+    .bp-landing .bp-hero { padding: 48px 20px 52px; gap: 44px; }
+    .bp-landing .bp-hero h1 { font-size: clamp(40px, 11vw, 62px); }
+    .bp-landing .bp-hero-description { font-size: 16px; }
     .bp-landing .bp-hero-actions { align-items: stretch; flex-direction: column; }
     .bp-landing .bp-hero-actions .bp-button { width: 100%; }
     .bp-landing .bp-dashboard { transform: none; }
@@ -720,156 +726,75 @@ const globalStyles = `
     .bp-landing .bp-dashboard-content { padding: 11px; }
     .bp-landing .bp-metrics { gap: 5px; }
     .bp-landing .bp-metric { padding: 9px 7px; }
-    .bp-landing .bp-metric span { font-size: 8px; }
-    .bp-landing .bp-metric strong { font-size: 16px; }
-    .bp-landing .bp-metric small { font-size: 7px; }
+    .bp-landing .bp-metric strong { font-size: 17px; }
     .bp-landing .bp-dash-lower { grid-template-columns: 1fr; }
     .bp-landing .bp-insight-card { display: none; }
     .bp-landing .bp-floating-note { padding: 9px 11px; }
-    .bp-landing .bp-floating-note strong { font-size: 9px; }
-    .bp-landing .bp-floating-note small { font-size: 8px; }
+    .bp-landing .bp-floating-note strong { font-size: 11px; }
+    .bp-landing .bp-floating-note small { font-size: 10px; }
     .bp-landing .bp-floating-one { left: -3px; bottom: -19px; }
     .bp-landing .bp-floating-two { right: -3px; top: -18px; }
-    .bp-landing .bp-section { padding: 70px 20px; }
-    .bp-landing .bp-human-section, .bp-landing .bp-video-section, .bp-landing .bp-how-grid {
-      grid-template-columns: 1fr; gap: 32px;
-    }
-    .bp-landing .bp-human-image, .bp-landing .bp-human-image img { height: 300px; min-height: 300px; }
-    .bp-landing .bp-section-heading { font-size: clamp(32px,8vw,44px); }
- .bp-landing .bp-center-heading {
-  text-align: center;
-  margin: 0 auto 45px;
-}
-
-.bp-landing .bp-center-heading .bp-section-description {
-  margin: 0 auto;
-}
-    .bp-landing .bp-feature-grid, .bp-landing .bp-story-grid { grid-template-columns: 1fr; gap: 15px; }
+    .bp-landing .bp-record-card { width: min(196px, 54%); min-height: 58px; gap: 7px; padding: 8px; }
+    .bp-landing .bp-record-type { display: none; }
+    .bp-landing .bp-section { padding: 68px 20px; }
+    .bp-landing .bp-human-section, .bp-landing .bp-video-section, .bp-landing .bp-how-grid { grid-template-columns: 1fr; gap: 32px; }
+    .bp-landing .bp-human-image { min-height: 320px; }
+    .bp-landing .bp-frame { height: 320px; }
+    .bp-landing .bp-section-heading { font-size: clamp(33px, 9vw, 46px); }
+    .bp-landing .bp-section-description, .bp-landing .bp-human-copy p, .bp-landing .bp-video-copy p, .bp-landing .bp-how-copy p { font-size: 16px; }
+    .bp-landing .bp-center-heading { margin-bottom: 36px; }
     .bp-landing .bp-feature-image { height: 220px; }
-    .bp-landing .bp-wide-panel { grid-template-columns: 1fr; padding: 23px; gap: 20px; }
-    .bp-landing .bp-wide-panel img { height: 210px; }
-    .bp-landing .bp-agents-header { grid-template-columns: 1fr; gap: 15px; }
-    .bp-landing .bp-agent-grid { grid-template-columns: 1fr; gap: 15px; }
-    .bp-landing .bp-agent-card:last-child { grid-column: auto; }
-    .bp-landing .bp-agent-card:last-child .bp-agent-image,
+    .bp-landing .bp-wide-panel { grid-template-columns: 1fr; padding: 24px; gap: 22px; }
+    .bp-landing .bp-frame-sm { height: 220px; }
+    .bp-landing .bp-agents-header { grid-template-columns: 1fr; gap: 16px; }
+    .bp-landing .bp-agent-grid, .bp-landing .bp-import-grid { grid-template-columns: 1fr; gap: 15px; }
+    .bp-landing .bp-import-grid > .bp-import-wide { grid-column: auto; }
     .bp-landing .bp-agent-image { height: 210px; }
     .bp-landing .bp-agent-bottom { align-items: stretch; flex-direction: column; padding: 20px; }
     .bp-landing .bp-agent-bottom .bp-button { width: 100%; }
     .bp-landing .bp-video-wrap { min-height: 260px; }
+    .bp-landing .bp-step { padding: 18px; gap: 12px; grid-template-columns: 38px 1fr 20px; }
+    .bp-landing .bp-step-number { width: 38px; height: 38px; }
+    .bp-landing .bp-steps::before, .bp-landing .bp-steps::after { left: 37px; }
     .bp-landing .bp-principles { grid-template-columns: 1fr; gap: 24px; }
-    .bp-landing .bp-principle { display: grid; grid-template-columns: 48px 1fr; column-gap: 15px; }
+    .bp-landing .bp-principle { display: grid; grid-template-columns: 52px 1fr; column-gap: 16px; }
     .bp-landing .bp-principle-icon { grid-row: 1/3; margin: 0; }
     .bp-landing .bp-principle h3 { margin: 2px 0 5px; }
     .bp-landing .bp-principle p { grid-column: 2; }
-    .bp-landing .bp-closing { margin: 0 12px 16px; padding: 65px 22px; }
-    .bp-landing .bp-footer { grid-template-columns: 1fr; gap: 14px; padding: 25px 20px; }
-    .bp-landing .bp-footer-links { justify-content: flex-start; gap: 15px; }
-    .bp-landing .bp-copyright { grid-column: auto; }
+    .bp-landing .bp-recommend-card { padding: 22px; }
+    .bp-landing .bp-faq-layout { gap: 28px; }
+    .bp-landing .bp-faq-item summary { padding: 17px; font-size: 15.5px; }
+    .bp-landing .bp-faq-item p { padding: 0 17px 17px; }
+    .bp-landing .bp-closing { margin: 0 12px 16px; padding: 66px 22px; border-radius: 20px; }
+    .bp-landing .bp-footer-expanded { padding: 44px 20px 20px; }
+    .bp-landing .bp-footer-main, .bp-landing .bp-footer-how { grid-template-columns: 1fr; gap: 28px; }
+    .bp-landing .bp-footer-bottom { align-items: flex-start; flex-direction: column; }
+    .bp-landing .bp-top-btn { right: 14px; bottom: 14px; }
   }
   @media (max-width: 390px) {
-    .bp-landing .bp-nav-actions .bp-button { padding: 0 9px; }
+    .bp-landing .bp-brand-name { font-size: 20px; }
     .bp-landing .bp-dashboard-top { padding: 0 9px; }
-    .bp-landing .bp-brand-name { font-size: 18px; }
     .bp-landing .bp-dashboard-content { padding: 8px; }
-    .bp-landing .bp-metric strong { font-size: 14px; }
-    .bp-landing .bp-dash-heading h3 { font-size: 13px; }
-    .bp-landing .bp-floating-note { gap: 6px; }
+    .bp-landing .bp-metric strong { font-size: 15px; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .bp-landing *, .bp-landing *:before, .bp-landing *:after {
-      animation-duration: .01ms !important;
-      animation-iteration-count: 1 !important;
-      scroll-behavior: auto !important;
-      transition-duration: .01ms !important;
+    .bp-landing *, .bp-landing *::before, .bp-landing *::after {
+      animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important; transition-duration: .01ms !important;
     }
     .bp-landing .bp-reveal { opacity: 1; transform: none; }
-  }
-
-  /* BizPilot landing-page-only additions. Every rule stays inside .bp-landing. */
-  .bp-landing .bp-hero-copy { max-width: 650px; }
-  .bp-landing .bp-hero .bp-eyebrow { gap: 0; }
-  .bp-landing .bp-dashboard-content { text-align: left; }
-  .bp-landing .bp-dash-heading h3 { line-height: 1.25; }
-  .bp-landing .bp-metric span, .bp-landing .bp-metric small { line-height: 1.45; }
-  .bp-landing .bp-import-section { background: #fff; }
-  .bp-landing .bp-import-layout { display: grid; grid-template-columns: .78fr 1.22fr; gap: 48px; align-items: center; }
-  .bp-landing .bp-import-copy .bp-section-heading { margin-bottom: 17px; }
-  .bp-landing .bp-import-copy .bp-section-description { margin-bottom: 24px; }
-  .bp-landing .bp-import-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
-  .bp-landing .bp-import-card { min-height: 160px; padding: 20px; border: 1px solid #E3EAE2; border-radius: 13px; background: linear-gradient(145deg,#fff,#F7FAF6); transition: transform .25s ease,border-color .25s ease,box-shadow .25s ease; }
-  .bp-landing .bp-import-card:last-child { grid-column: 1/-1; }
-  .bp-landing .bp-import-card:hover { transform: translateY(-4px); border-color: #B6D9C2; box-shadow: 0 14px 28px rgba(23,61,48,.07); }
-  .bp-landing .bp-import-icon, .bp-landing .bp-recommend-icon { display: grid; place-items: center; width: 42px; height: 42px; margin-bottom: 13px; border-radius: 11px; color: #087950; background: #EAF5EE; }
-  .bp-landing .bp-import-card h3 { margin-bottom: 7px; font-size: 16px; letter-spacing: -.4px; }
-  .bp-landing .bp-import-card p { margin: 0; color: #718078; font-size: 11px; line-height: 1.8; }
-  .bp-landing .bp-import-note { display: flex; align-items: flex-start; gap: 10px; margin-top: 22px; padding: 15px 18px; border-radius: 10px; background: #F2F7F1; color: #52665A; }
-  .bp-landing .bp-import-note svg { flex-shrink: 0; margin-top: 3px; color: #087950; }
-  .bp-landing .bp-import-note p { margin: 0; font-size: 11px; line-height: 1.8; }
-  .bp-landing .bp-agent-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
-  .bp-landing .bp-agent-card:last-child { grid-column: auto; }
-  .bp-landing .bp-agent-card:last-child .bp-agent-image { height: 190px; }
-  .bp-landing .bp-recommend-section { background: #F3F5F0; }
-  .bp-landing .bp-recommend-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 17px; }
-  .bp-landing .bp-recommend-card { padding: 25px; border: 1px solid #E1E8E0; border-radius: 14px; background: white; transition: transform .25s ease,box-shadow .25s ease; }
-  .bp-landing .bp-recommend-card:hover { transform: translateY(-5px); box-shadow: 0 16px 32px rgba(23,61,48,.08); }
-  .bp-landing .bp-recommend-label { display: block; margin-bottom: 8px; color: #087950; font-size: 9px; font-weight: 800; letter-spacing: 1.2px; }
-  .bp-landing .bp-recommend-card h3 { margin-bottom: 10px; font-size: 19px; line-height: 1.35; }
-  .bp-landing .bp-recommend-card p, .bp-landing .bp-recommend-disclaimer { margin: 0; color: #718078; font-size: 12px; line-height: 1.85; }
-  .bp-landing .bp-recommend-disclaimer { margin-top: 20px; text-align: center; font-size: 10px; }
-  .bp-landing .bp-faq-section { background: #fff; }
-  .bp-landing .bp-faq-layout { display: grid; grid-template-columns: .8fr 1.2fr; gap: clamp(35px,7vw,90px); align-items: start; }
-  .bp-landing .bp-faq-intro { position: sticky; top: 110px; }
-  .bp-landing .bp-faq-help { display: flex; align-items: flex-start; gap: 12px; margin-top: 27px; padding: 17px; border-radius: 12px; background: #F1F7F0; color: #087950; }
-  .bp-landing .bp-faq-help span { display: grid; gap: 5px; }
-  .bp-landing .bp-faq-help strong { color: #173D30; font-size: 12px; }
-  .bp-landing .bp-faq-help small { color: #718078; font-size: 11px; line-height: 1.7; }
-  .bp-landing .bp-faq-list { display: grid; gap: 10px; }
-  .bp-landing .bp-faq-item { overflow: hidden; border: 1px solid #E3EAE2; border-radius: 12px; background: #fff; transition: border-color .2s ease,box-shadow .2s ease; }
-  .bp-landing .bp-faq-item[open] { border-color: #B9D9C2; box-shadow: 0 9px 22px rgba(23,61,48,.045); }
-  .bp-landing .bp-faq-item summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 19px 20px; cursor: pointer; list-style: none; color: #173D30; font-size: 13px; font-weight: 700; }
-  .bp-landing .bp-faq-item summary::-webkit-details-marker { display: none; }
-  .bp-landing .bp-faq-item summary svg { flex-shrink: 0; color: #087950; transition: transform .2s ease; }
-  .bp-landing .bp-faq-item[open] summary svg { transform: rotate(180deg); }
-  .bp-landing .bp-faq-item p { margin: 0; padding: 0 20px 20px; color: #718078; font-size: 12px; line-height: 1.9; }
-  .bp-landing .bp-footer-expanded { display: block; padding: 58px clamp(20px,6vw,90px) 22px; background: #102E23; color: #fff; border-top: 0; }
-  .bp-landing .bp-footer-main { display: grid; grid-template-columns: 1.3fr .8fr 1fr .9fr; gap: 40px; max-width: 1400px; margin: 0 auto; padding-bottom: 42px; }
-  .bp-landing .bp-footer-expanded .bp-brand-name { color: #fff; }
-  .bp-landing .bp-footer-expanded .bp-brand-mark { background: #9DE1BB; color: #173D30; }
-  .bp-landing .bp-footer-tagline { display: block; margin: 18px 0 8px; color: #D7E6DA; font-size: 13px; }
-  .bp-landing .bp-footer-small { max-width: 270px; margin-bottom: 20px; color: #AFC4B5; font-size: 11px; line-height: 1.85; }
-  .bp-landing .bp-footer-expanded .bp-footer-column { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
-  .bp-landing .bp-footer-column h3 { margin: 4px 0 8px; color: #fff; font-size: 13px; letter-spacing: -.2px; }
-  .bp-landing .bp-footer-column a, .bp-landing .bp-footer-column button { padding: 0; border: 0; background: transparent; color: #B7C9BC; font-size: 11px; text-align: left; transition: color .2s ease; }
-  .bp-landing .bp-footer-column a:hover, .bp-landing .bp-footer-column button:hover { color: #9DE1BB; }
-  .bp-landing .bp-footer-how { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 25px; max-width: 1400px; margin: 0 auto; padding: 28px 0; border-top: 1px solid rgba(255,255,255,.13); border-bottom: 1px solid rgba(255,255,255,.13); }
-  .bp-landing .bp-footer-how > div { display: grid; grid-template-columns: 34px 1fr; column-gap: 12px; align-content: start; }
-  .bp-landing .bp-footer-step { grid-row: 1/3; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; background: rgba(157,225,187,.12); color: #9DE1BB; font-size: 10px; font-weight: 800; }
-  .bp-landing .bp-footer-how strong { margin: 2px 0 5px; color: #fff; font-size: 12px; }
-  .bp-landing .bp-footer-how p { grid-column: 2; margin: 0; color: #AFC4B5; font-size: 10px; line-height: 1.8; }
-  .bp-landing .bp-footer-bottom { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; max-width: 1400px; margin: 0 auto; padding-top: 20px; }
-  .bp-landing .bp-footer-bottom p { margin: 0; color: #91AB99; font-size: 10px; }
-  .bp-landing .bp-footer-bottom a { color: #9DE1BB; font-size: 10px; font-weight: 700; }
-  @media (max-width: 1100px) {
-    .bp-landing .bp-import-layout, .bp-landing .bp-faq-layout { grid-template-columns: 1fr; }
-    .bp-landing .bp-faq-intro { position: static; }
-    .bp-landing .bp-footer-main { grid-template-columns: repeat(2,minmax(0,1fr)); }
-    .bp-landing .bp-agent-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
-  }
-  @media (max-width: 760px) {
-    .bp-landing .bp-import-layout { gap: 28px; }
-    .bp-landing .bp-import-grid, .bp-landing .bp-recommend-grid { grid-template-columns: 1fr; }
-    .bp-landing .bp-import-card:last-child { grid-column: auto; }
-    .bp-landing .bp-agent-grid { grid-template-columns: 1fr; }
-    .bp-landing .bp-recommend-card { padding: 21px; }
-    .bp-landing .bp-faq-layout { gap: 28px; }
-    .bp-landing .bp-faq-item summary { padding: 17px; font-size: 12px; }
-    .bp-landing .bp-faq-item p { padding: 0 17px 17px; }
-    .bp-landing .bp-footer-expanded { padding: 42px 20px 20px; }
-    .bp-landing .bp-footer-main, .bp-landing .bp-footer-how { grid-template-columns: 1fr; gap: 27px; }
-    .bp-landing .bp-footer-bottom { align-items: flex-start; flex-direction: column; }
+    .bp-landing .bp-word-inner { transform: none; }
+    .bp-landing .bp-marquee-track { animation: none; }
+    .bp-landing .bp-steps::after { transform: none; }
+    .bp-landing .bp-records-collage { display: none; }
+    .bp-landing .bp-clarity-dashboard, .bp-landing .bp-assemble-heading, .bp-landing .bp-assemble-metrics,
+    .bp-landing .bp-assemble-lower, .bp-landing .bp-assemble-note-one, .bp-landing .bp-assemble-note-two { opacity: 1; transform: none; filter: none; }
   }
 `;
 
+/* ------------------------------------------------------------------ */
+/* Scroll-triggered reveal (same API as before)                        */
+/* ------------------------------------------------------------------ */
 function Reveal({ children, direction = "up", delay = 0, className = "" }) {
   const ref = useRef(null);
   const [visible, setVisible] = useState(false);
@@ -911,6 +836,17 @@ function Reveal({ children, direction = "up", delay = 0, className = "" }) {
   );
 }
 
+/* Words rise into place when their parent Reveal becomes visible. */
+function SplitWords({ text, start = 0, accent = false }) {
+  return text.split(" ").map((word, i) => (
+    <React.Fragment key={`${word}-${i}`}>
+      <span className={`bp-word ${accent ? "bp-word-accent" : ""}`}>
+        <span className="bp-word-inner" style={{ "--i": start + i }}>{word}</span>
+      </span>{" "}
+    </React.Fragment>
+  ));
+}
+
 function Brand({ onClick }) {
   return (
     <a className="bp-brand" href="#bizpilot-bp-top" onClick={onClick} aria-label="BizPilot home">
@@ -934,34 +870,10 @@ function DashboardPreview() {
   }[period];
 
   const recordCards = [
-    {
-      className: "bp-record-csv",
-      icon: <FileSpreadsheet size={16} />,
-      label: "sales_october.csv",
-      detail: "Sales records · 248 rows",
-      type: "CSV",
-    },
-    {
-      className: "bp-record-invoice",
-      icon: <FileText size={16} />,
-      label: "Invoice #1048",
-      detail: "Payment record · PDF",
-      type: "PDF",
-    },
-    {
-      className: "bp-record-stock",
-      icon: <Package size={16} />,
-      label: "Stock list.xlsx",
-      detail: "Products · 128 items",
-      type: "XLSX",
-    },
-    {
-      className: "bp-record-message",
-      icon: <MessageSquare size={16} />,
-      label: "Order received",
-      detail: '"Please reserve 4 items"',
-      type: "MESSAGE",
-    },
+    { className: "bp-record-csv", icon: <FileSpreadsheet size={16} />, label: "sales_october.csv", detail: "Sales records · 248 rows", type: "CSV" },
+    { className: "bp-record-invoice", icon: <FileText size={16} />, label: "Invoice #1048", detail: "Payment record · PDF", type: "PDF" },
+    { className: "bp-record-stock", icon: <Package size={16} />, label: "Stock list.xlsx", detail: "Products · 128 items", type: "XLSX" },
+    { className: "bp-record-message", icon: <MessageSquare size={16} />, label: "Order received", detail: '"Please reserve 4 items"', type: "MESSAGE" },
   ];
 
   return (
@@ -969,42 +881,31 @@ function DashboardPreview() {
       <div className="bp-dashboard-glow" />
 
       {/* Decorative records collage */}
-      <div
-        className="bp-records-collage"
-        aria-hidden="true"
-      >
+      <div className="bp-records-collage" aria-hidden="true">
         <div className="bp-records-label">
           <span className="bp-records-label-dot" />
           YOUR BUSINESS RECORDS
         </div>
 
         {recordCards.map((record, index) => (
-          <div
-            key={record.className}
-            className={`bp-record-card ${record.className}`}
-            style={{ "--record-index": index }}
-          >
+          <div key={record.className} className={`bp-record-card ${record.className}`} style={{ "--record-index": index }}>
             <span className="bp-record-icon">{record.icon}</span>
-
             <span className="bp-record-copy">
               <strong>{record.label}</strong>
               <small>{record.detail}</small>
             </span>
-
             <span className="bp-record-type">{record.type}</span>
           </div>
         ))}
 
         <div className="bp-records-transform">
           <span className="bp-transform-line" />
-          <span className="bp-transform-icon">
-            <Sparkles size={16} />
-          </span>
+          <span className="bp-transform-icon"><Sparkles size={16} /></span>
           <span className="bp-transform-line" />
         </div>
 
         <div className="bp-organized-label">
-          <span className="bp-organized-check">✓</span>
+          <span className="bp-organized-check"><Check size={11} strokeWidth={3} /></span>
           Organized into one view
         </div>
       </div>
@@ -1012,31 +913,15 @@ function DashboardPreview() {
       {/* Main dashboard */}
       <div className="bp-dashboard bp-clarity-dashboard">
         <div className="bp-dashboard-top">
-          <div className="bp-window-dots" aria-hidden="true">
-            <i />
-            <i />
-            <i />
-          </div>
-
-          <span
-            style={{
-              fontSize: 10,
-              fontWeight: 800,
-              color: C.forest,
-            }}
-          >
-            bizpilot. / overview
-          </span>
-
+          <div className="bp-window-dots" aria-hidden="true"><i /><i /><i /></div>
+          <span style={{ fontSize: 11, fontWeight: 700, color: C.forest }}>bizpilot. / overview</span>
           <span className="bp-sample-tag">SAMPLE DATA</span>
         </div>
 
         <div className="bp-dashboard-layout">
           <aside className="bp-mini-sidebar" aria-hidden="true">
             <Activity size={16} />
-            <span className="active">
-              <BarChart3 size={16} />
-            </span>
+            <span className="active"><BarChart3 size={16} /></span>
             <Package size={16} />
             <Boxes size={16} />
             <Workflow size={16} />
@@ -1047,32 +932,15 @@ function DashboardPreview() {
               <div>
                 <small>YOUR WORKSPACE</small>
                 <h3>Your business, at a glance.</h3>
-                <p>
-                  See what is selling, what is left, and how money is moving.
-                </p>
+                <p>See what is selling, what is left, and how money is moving.</p>
               </div>
-
               <span className="bp-demo-chip">Demo data</span>
             </div>
 
             <div className="bp-metrics bp-assemble-metrics">
-              <div className="bp-metric">
-                <span>Sales recorded</span>
-                <strong>24,860</strong>
-                <small>Illustrative amount</small>
-              </div>
-
-              <div className="bp-metric">
-                <span>Orders</span>
-                <strong>248</strong>
-                <small>Sample activity</small>
-              </div>
-
-              <div className="bp-metric">
-                <span>Products</span>
-                <strong>128</strong>
-                <small>Sample catalogue</small>
-              </div>
+              <div className="bp-metric"><span>Sales recorded</span><strong>24,860</strong><small>Illustrative amount</small></div>
+              <div className="bp-metric"><span>Orders</span><strong>248</strong><small>Sample activity</small></div>
+              <div className="bp-metric"><span>Products</span><strong>128</strong><small>Sample catalogue</small></div>
             </div>
 
             <div className="bp-dash-lower bp-assemble-lower">
@@ -1082,25 +950,9 @@ function DashboardPreview() {
                     <strong>Business activity</strong>
                     <small>Illustrative performance data</small>
                   </span>
-
                   <label>
-                    <span
-                      className="bp-sr-only"
-                      style={{
-                        position: "absolute",
-                        width: 1,
-                        height: 1,
-                        overflow: "hidden",
-                        clip: "rect(0,0,0,0)",
-                      }}
-                    >
-                      Chart period
-                    </span>
-
-                    <select
-                      value={period}
-                      onChange={(event) => setPeriod(event.target.value)}
-                    >
+                    <span style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0,0,0,0)" }}>Chart period</span>
+                    <select value={period} onChange={(event) => setPeriod(event.target.value)}>
                       <option value="Week">Week</option>
                       <option value="Month">Month</option>
                       <option value="Year">Year</option>
@@ -1108,37 +960,22 @@ function DashboardPreview() {
                   </label>
                 </div>
 
-                <div
-                  className="bp-chart"
-                  role="img"
-                  aria-label={`Illustrative business activity over the ${period.toLowerCase()}`}
-                >
+                <div className="bp-chart" role="img" aria-label={`Illustrative business activity over the ${period.toLowerCase()}`}>
                   {bars.map((height, index) => (
                     <span
                       key={`${period}-${index}`}
-                      className={`bp-chart-bar ${index === 7 ? "highlight" : ""
-                        }`}
-                      style={{
-                        height: `${height}%`,
-                        animationDelay: `${index * 35}ms`,
-                      }}
+                      className={`bp-chart-bar ${index === 7 ? "highlight" : ""}`}
+                      style={{ height: `${height}%`, animationDelay: `${index * 35}ms` }}
                     />
                   ))}
                 </div>
               </div>
 
               <div className="bp-insight-card">
-                <span className="bp-insight-icon">
-                  <Sparkles size={16} />
-                </span>
-
+                <span className="bp-insight-icon"><Sparkles size={16} /></span>
                 <small>YOUR NEXT STEP</small>
                 <strong>Look for the pattern.</strong>
-
-                <p>
-                  Compare activity over time to understand what may need your
-                  attention.
-                </p>
+                <p>Compare activity over time to understand what may need your attention.</p>
               </div>
             </div>
           </div>
@@ -1148,391 +985,12 @@ function DashboardPreview() {
       {/* Floating business insights */}
       <div className="bp-floating-note bp-floating-one bp-assemble-note-one">
         <TrendingUp size={20} />
-        <div>
-          <strong>See the bigger picture</strong>
-          <small>Business performance</small>
-        </div>
+        <div><strong>See the bigger picture</strong><small>Business performance</small></div>
       </div>
-
       <div className="bp-floating-note bp-floating-two bp-assemble-note-two">
         <Sparkles size={19} />
-        <div>
-          <strong>Clarity starts here.</strong>
-          <small>Explore your business data</small>
-        </div>
+        <div><strong>Clarity starts here.</strong><small>Explore your business data</small></div>
       </div>
-
-      {/* Scoped animation styles */}
-      <style>{`
-        .bp-landing .bp-clarity-scene {
-          isolation: isolate;
-        }
-
-        .bp-landing .bp-records-collage {
-          position: absolute;
-          inset: 0;
-          z-index: 5;
-          pointer-events: none;
-          opacity: 0;
-          animation: bpRecordsScene 5.2s ease-in-out both;
-        }
-
-        .bp-landing .bp-records-label {
-          position: absolute;
-          top: 5%;
-          left: 50%;
-          display: flex;
-          align-items: center;
-          gap: 7px;
-          padding: 8px 12px;
-          border: 1px solid rgba(23, 61, 48, 0.1);
-          border-radius: 999px;
-          background: rgba(255, 252, 245, 0.96);
-          color: #173D30;
-          font-size: 9px;
-          font-weight: 800;
-          letter-spacing: 0.08em;
-          white-space: nowrap;
-          box-shadow: 0 8px 25px rgba(23, 61, 48, 0.07);
-          transform: translate(-50%, 15px);
-          animation: bpRecordsLabel 5.2s ease both;
-        }
-
-        .bp-landing .bp-records-label-dot {
-          width: 7px;
-          height: 7px;
-          border-radius: 50%;
-          background: #0E9C6B;
-        }
-
-        .bp-landing .bp-record-card {
-          position: absolute;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          width: min(230px, 48%);
-          min-height: 66px;
-          padding: 12px;
-          border: 1px solid rgba(23, 61, 48, 0.11);
-          border-radius: 13px;
-          background: #FFFCF5;
-          box-shadow: 0 14px 38px rgba(23, 61, 48, 0.12);
-          opacity: 0;
-          animation: bpRecordAssemble 5.2s cubic-bezier(.2,.75,.25,1) both;
-          animation-delay: calc(var(--record-index) * 100ms);
-        }
-
-        .bp-landing .bp-record-csv {
-          top: 20%;
-          left: -3%;
-          --record-x: -75px;
-          --record-y: -40px;
-          --record-rotate: -12deg;
-        }
-
-        .bp-landing .bp-record-invoice {
-          top: 19%;
-          right: -2%;
-          --record-x: 75px;
-          --record-y: -45px;
-          --record-rotate: 11deg;
-        }
-
-        .bp-landing .bp-record-stock {
-          bottom: 20%;
-          left: -4%;
-          --record-x: -80px;
-          --record-y: 45px;
-          --record-rotate: 9deg;
-        }
-
-        .bp-landing .bp-record-message {
-          right: -2%;
-          bottom: 19%;
-          --record-x: 80px;
-          --record-y: 45px;
-          --record-rotate: -10deg;
-        }
-
-        .bp-landing .bp-record-icon {
-          display: grid;
-          flex: 0 0 34px;
-          width: 34px;
-          height: 34px;
-          place-items: center;
-          border-radius: 10px;
-          background: #EAF5ED;
-          color: #0E805A;
-        }
-
-        .bp-landing .bp-record-copy {
-          display: grid;
-          min-width: 0;
-          gap: 4px;
-        }
-
-        .bp-landing .bp-record-copy strong {
-          overflow: hidden;
-          color: #173D30;
-          font-size: 10px;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-
-        .bp-landing .bp-record-copy small {
-          color: #718078;
-          font-size: 8px;
-          line-height: 1.4;
-        }
-
-        .bp-landing .bp-record-type {
-          margin-left: auto;
-          color: #73857B;
-          font-size: 7px;
-          font-weight: 800;
-        }
-
-        .bp-landing .bp-records-transform {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          display: flex;
-          align-items: center;
-          gap: 9px;
-          opacity: 0;
-          transform: translate(-50%, -50%) scale(.6);
-          animation: bpTransformPulse 5.2s ease both;
-        }
-
-        .bp-landing .bp-transform-line {
-          width: 24px;
-          height: 1px;
-          background: rgba(14, 156, 107, .5);
-        }
-
-        .bp-landing .bp-transform-icon {
-          display: grid;
-          width: 38px;
-          height: 38px;
-          place-items: center;
-          border: 1px solid rgba(14, 156, 107, .2);
-          border-radius: 50%;
-          background: #EAF5ED;
-          color: #0E9C6B;
-          box-shadow: 0 0 0 7px rgba(14, 156, 107, .07);
-        }
-
-        .bp-landing .bp-organized-label {
-          position: absolute;
-          bottom: 5%;
-          left: 50%;
-          display: flex;
-          align-items: center;
-          gap: 7px;
-          padding: 8px 12px;
-          border: 1px solid rgba(14, 156, 107, .18);
-          border-radius: 999px;
-          background: #F0F8F0;
-          color: #205641;
-          font-size: 9px;
-          font-weight: 700;
-          white-space: nowrap;
-          opacity: 0;
-          transform: translate(-50%, -8px);
-          animation: bpOrganizedLabel 5.2s ease both;
-        }
-
-        .bp-landing .bp-organized-check {
-          display: grid;
-          width: 16px;
-          height: 16px;
-          place-items: center;
-          border-radius: 50%;
-          background: #0E9C6B;
-          color: white;
-          font-size: 10px;
-        }
-
-        .bp-landing .bp-clarity-dashboard {
-          transform-origin: center;
-          animation: bpDashboardReveal 5.2s cubic-bezier(.2,.75,.25,1) both;
-        }
-
-        .bp-landing .bp-assemble-heading,
-        .bp-landing .bp-assemble-metrics,
-        .bp-landing .bp-assemble-lower {
-          animation: bpDashboardContentReveal 5.2s ease both;
-        }
-
-        .bp-landing .bp-assemble-heading {
-          animation-delay: 1.5s;
-        }
-
-        .bp-landing .bp-assemble-metrics {
-          animation-delay: 1.7s;
-        }
-
-        .bp-landing .bp-assemble-lower {
-          animation-delay: 1.9s;
-        }
-
-        .bp-landing .bp-assemble-note-one {
-          animation: bpAssembleNoteOne 5.2s ease both;
-        }
-
-        .bp-landing .bp-assemble-note-two {
-          animation: bpAssembleNoteTwo 5.2s ease both;
-        }
-
-        @keyframes bpRecordsScene {
-          0%, 3% { opacity: 1; }
-          48% { opacity: 1; }
-          69%, 100% { opacity: 0; visibility: hidden; }
-        }
-
-        @keyframes bpRecordsLabel {
-          0% { opacity: 0; transform: translate(-50%, 15px); }
-          8%, 38% { opacity: 1; transform: translate(-50%, 0); }
-          55%, 100% { opacity: 0; transform: translate(-50%, -10px); }
-        }
-
-        @keyframes bpRecordAssemble {
-          0% {
-            opacity: 0;
-            transform: translate(var(--record-x), var(--record-y)) rotate(var(--record-rotate)) scale(.78);
-          }
-          10%, 24% {
-            opacity: 1;
-            transform: translate(0, 0) rotate(var(--record-rotate)) scale(1);
-          }
-          44% {
-            opacity: 1;
-            transform: translate(0, 0) rotate(0) scale(.96);
-          }
-          62%, 100% {
-            opacity: 0;
-            transform: translate(0, -18px) rotate(0) scale(.82);
-          }
-        }
-
-        @keyframes bpTransformPulse {
-          0%, 28% { opacity: 0; transform: translate(-50%, -50%) scale(.6); }
-          38%, 48% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-          60%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.2); }
-        }
-
-        @keyframes bpOrganizedLabel {
-          0%, 43% { opacity: 0; transform: translate(-50%, -8px); }
-          53%, 65% { opacity: 1; transform: translate(-50%, 0); }
-          75%, 100% { opacity: 0; transform: translate(-50%, 8px); }
-        }
-
-        @keyframes bpDashboardReveal {
-          0%, 35% {
-            opacity: .05;
-            transform: translateY(22px) scale(.94);
-            filter: blur(5px);
-          }
-          55% {
-            opacity: 1;
-            transform: translateY(0) scale(1.015);
-            filter: blur(0);
-          }
-          68%, 100% {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-            filter: none;
-          }
-        }
-
-        @keyframes bpDashboardContentReveal {
-          0%, 34% { opacity: 0; transform: translateY(12px); }
-          54%, 100% { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes bpAssembleNoteOne {
-          0%, 43% { opacity: 0; transform: translate(-24px, 12px) scale(.9); }
-          58%, 100% { opacity: 1; transform: translate(0, 0) scale(1); }
-        }
-
-        @keyframes bpAssembleNoteTwo {
-          0%, 47% { opacity: 0; transform: translate(24px, 12px) scale(.9); }
-          62%, 100% { opacity: 1; transform: translate(0, 0) scale(1); }
-        }
-
-        @media (max-width: 680px) {
-          .bp-landing .bp-record-card {
-            width: min(190px, 54%);
-            min-height: 56px;
-            gap: 7px;
-            padding: 8px;
-          }
-
-          .bp-landing .bp-record-csv {
-            left: -2%;
-          }
-
-          .bp-landing .bp-record-invoice {
-            right: -2%;
-          }
-
-          .bp-landing .bp-record-stock {
-            left: -2%;
-          }
-
-          .bp-landing .bp-record-message {
-            right: -2%;
-          }
-
-          .bp-landing .bp-record-copy strong {
-            font-size: 9px;
-          }
-
-          .bp-landing .bp-record-copy small {
-            font-size: 7px;
-          }
-
-          .bp-landing .bp-record-type {
-            display: none;
-          }
-
-          .bp-landing .bp-records-label,
-          .bp-landing .bp-organized-label {
-            font-size: 8px;
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .bp-landing .bp-records-collage,
-          .bp-landing .bp-record-card,
-          .bp-landing .bp-records-label,
-          .bp-landing .bp-records-transform,
-          .bp-landing .bp-organized-label,
-          .bp-landing .bp-clarity-dashboard,
-          .bp-landing .bp-assemble-heading,
-          .bp-landing .bp-assemble-metrics,
-          .bp-landing .bp-assemble-lower,
-          .bp-landing .bp-assemble-note-one,
-          .bp-landing .bp-assemble-note-two {
-            animation: none !important;
-          }
-
-          .bp-landing .bp-records-collage {
-            display: none;
-          }
-
-          .bp-landing .bp-clarity-dashboard,
-          .bp-landing .bp-assemble-heading,
-          .bp-landing .bp-assemble-metrics,
-          .bp-landing .bp-assemble-lower,
-          .bp-landing .bp-assemble-note-one,
-          .bp-landing .bp-assemble-note-two {
-            opacity: 1;
-            transform: none;
-            filter: none;
-          }
-        }
-      `}</style>
     </div>
   );
 }
@@ -1544,63 +1002,18 @@ function FeatureCard({ feature, index, onPreview }) {
     <Reveal direction="up" delay={index * 100}>
       <article className="bp-feature-card">
         <div className="bp-feature-image">
-          <img src={feature.image} alt={feature.title} loading="lazy" decoding="async" />
+          <SmartImage id={feature.image} alt={feature.title} preset="card" />
           <span className="bp-image-number">{feature.number}</span>
         </div>
         <div className="bp-feature-copy">
           <span className="bp-card-label">{feature.label}</span>
           <h3>{feature.title}</h3>
           <p>{feature.text}</p>
-
-          <button
-            type="button"
-            onClick={onPreview}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-3px)";
-              e.currentTarget.style.background = "linear-gradient(135deg, #147D58, #0E9C6B)";
-              e.currentTarget.style.boxShadow = "0 10px 24px rgba(14, 156, 107, 0.25)";
-              e.currentTarget.style.borderColor = "#0E9C6B";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.background = "linear-gradient(135deg, #173D30, #205641)";
-              e.currentTarget.style.boxShadow = "0 4px 12px rgba(23, 61, 48, 0.12)";
-              e.currentTarget.style.borderColor = "rgba(23, 61, 48, 0.12)";
-            }}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "10px",
-              padding: "13px 18px",
-              borderRadius: "12px",
-              border: "1px solid rgba(23, 61, 48, 0.12)",
-              background: "linear-gradient(135deg, #173D30, #205641)",
-              color: "#FFFFFF",
-              fontSize: "14px",
-              fontWeight: 700,
-              letterSpacing: "-0.01em",
-              cursor: "pointer",
-              boxShadow: "0 4px 12px rgba(23, 61, 48, 0.12)",
-              transition:
-                "transform 220ms ease, background 220ms ease, box-shadow 220ms ease, border-color 220ms ease",
-              WebkitTapHighlightColor: "transparent",
-              outline: "none",
-            }}
-          >
+          <button type="button" className="bp-cap-button" onClick={onPreview}>
             <Icon size={16} strokeWidth={2.2} />
-
             <span>Explore this capability</span>
-
-            <ChevronRight
-              size={16}
-              strokeWidth={2.4}
-              style={{
-                transition: "transform 220ms ease",
-              }}
-            />
+            <ChevronRight size={16} strokeWidth={2.4} />
           </button>
-
         </div>
       </article>
     </Reveal>
@@ -1611,10 +1024,10 @@ function AgentCard({ agent, index }) {
   const Icon = agent.icon;
 
   return (
-    <Reveal direction="up" delay={index * 120}>
+    <Reveal direction="up" delay={(index % 3) * 120}>
       <article className="bp-agent-card">
         <div className="bp-agent-image">
-          <img src={agent.image} alt={`Illustrative image for ${agent.category.toLowerCase()}`} loading="lazy" decoding="async" />
+          <SmartImage id={agent.image} alt={`Illustrative image for ${agent.category.toLowerCase()}`} preset="card" />
           <span className="bp-agent-image-tag"><Icon size={14} /> {agent.category}</span>
         </div>
 
@@ -1646,7 +1059,7 @@ function StoryCard({ story, index }) {
     <Reveal direction="up" delay={index * 100}>
       <article className="bp-story-card">
         <div className="bp-story-image">
-          <img src={story.image} alt={story.title} loading="lazy" decoding="async" />
+          <SmartImage id={story.image} alt={story.title} preset="card" />
           <span className="bp-story-tag">{story.label}</span>
         </div>
         <div className="bp-story-copy">
@@ -1658,10 +1071,33 @@ function StoryCard({ story, index }) {
   );
 }
 
+const faqItems = [
+  { q: "Do I need to start a new business to use BizPilot?", a: "No. The idea is to help people who already run a business start with records they have, subject to the import options available in their workspace." },
+  { q: "What records can I start with?", a: "Possible starting points include CSV files, Excel spreadsheets, pasted rows or notes, chat messages, and PDF documents. Not every source or format is guaranteed to be supported yet." },
+  { q: "What do the six AI agents do?", a: "The Sales Agent reviews sales, Inventory Agent looks at stock, Reorder Agent flags items to review, Pricing Agent compares prices and costs, Cash Flow Agent summarizes money in and out, and Business Diagnosis Agent helps investigate changes." },
+  { q: "Will BizPilot automatically buy stock or change my prices?", a: "The agents are presented as assistants for understanding records and preparing suggestions. Do not assume they can place orders, move money, or change prices unless that action is explicitly available and approved in the product." },
+  { q: "Can I trust every recommendation?", a: "Treat recommendations as a starting point, not a guarantee. Check the source records, confirm important figures, and use your own judgment before making business decisions." },
+  { q: "Is the dashboard showing my real business figures?", a: "The landing-page dashboard uses sample data to demonstrate the layout. It is not your real business data." },
+  { q: "Do I need to be good with technology?", a: "The goal is to make the information easier to understand in everyday language. You should not need to understand complicated charts or technical terms to explore the basic ideas." },
+  { q: "Are all these features available right now?", a: "The page describes the intended experience. File imports, integrations, and agent actions depend on what is implemented and enabled in your current BizPilot version." },
+];
+
+const importItems = [
+  { icon: FileSpreadsheet, title: "CSV files", text: "A simple table of sales, products, stock, or payments." },
+  { icon: FileSpreadsheet, title: "Excel spreadsheets", text: "Existing .xlsx or spreadsheet records you already use." },
+  { icon: Command, title: "Pasted business records", text: "Copy rows or notes from a record and paste them in when supported." },
+  { icon: MessageSquareText, title: "Chat messages", text: "Useful order or customer details saved in conversations, where supported." },
+  { icon: FileText, title: "PDF documents", text: "Invoices, statements, and reports that may contain useful business details." },
+];
+
 export default function LandingPage({ onLogin, onSignup, onPreview }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [videoPlaying, setVideoPlaying] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [showTop, setShowTop] = useState(false);
+  const [activeSection, setActiveSection] = useState("");
   const videoRef = useRef(null);
+  const rootRef = useRef(null);
 
   const closeMenu = () => setMenuOpen(false);
 
@@ -1670,6 +1106,13 @@ export default function LandingPage({ onLogin, onSignup, onPreview }) {
     document.getElementById(id)?.scrollIntoView({
       behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
       block: "start",
+    });
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
     });
   };
 
@@ -1698,11 +1141,92 @@ export default function LandingPage({ onLogin, onSignup, onPreview }) {
     };
   }, []);
 
+  /* Smooth in-page anchor jumps while the landing page is open */
+  useEffect(() => {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const html = document.documentElement;
+    const previous = html.style.scrollBehavior;
+    if (!reduce) html.style.scrollBehavior = "smooth";
+    return () => { html.style.scrollBehavior = previous; };
+  }, []);
+
+  /* Scroll-linked effects: progress bar, nav state, parallax, step line, back-to-top */
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return undefined;
+
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const parallaxNodes = reduce ? [] : Array.from(root.querySelectorAll("[data-parallax]"));
+    const progressNodes = reduce ? [] : Array.from(root.querySelectorAll("[data-progress]"));
+    let frame = 0;
+
+    const update = () => {
+      frame = 0;
+      const y = window.scrollY;
+      const vh = window.innerHeight;
+      const max = document.documentElement.scrollHeight - vh;
+
+      root.style.setProperty("--scroll", max > 0 ? Math.min(1, y / max).toFixed(4) : "0");
+      setScrolled((prev) => (prev === y > 24 ? prev : y > 24));
+      setShowTop((prev) => (prev === y > 900 ? prev : y > 900));
+      if (y < 300) setActiveSection((prev) => (prev ? "" : prev));
+
+      parallaxNodes.forEach((el) => {
+        const box = (el.parentElement || el).getBoundingClientRect();
+        if (box.bottom < -300 || box.top > vh + 300) return;
+        const speed = parseFloat(el.dataset.speed || "0.05");
+        const offset = (box.top + box.height / 2 - vh / 2) * speed;
+        el.style.setProperty("--py", `${(-offset).toFixed(1)}px`);
+      });
+
+      progressNodes.forEach((el) => {
+        const box = el.getBoundingClientRect();
+        const progress = Math.min(1, Math.max(0, (vh * 0.75 - box.top) / (box.height + vh * 0.15)));
+        el.style.setProperty("--p", progress.toFixed(3));
+      });
+    };
+
+    const onScroll = () => {
+      if (!frame) frame = window.requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  /* Highlight the nav link for the section being read */
+  useEffect(() => {
+    if (!("IntersectionObserver" in window)) return undefined;
+    const sections = navLinks
+      .map(([id]) => document.getElementById(id))
+      .filter(Boolean);
+    if (!sections.length) return undefined;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) setActiveSection(entry.target.id);
+        });
+      },
+      { rootMargin: "-40% 0px -55% 0px" }
+    );
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div className="bp-landing" id="bizpilot-bp-top">
+    <div className="bp-landing" id="bizpilot-bp-top" ref={rootRef}>
       <style>{globalStyles}</style>
 
-      <header className="bp-nav">
+      <div className="bp-progress" aria-hidden="true"><i /></div>
+
+      <header className={`bp-nav ${scrolled ? "is-scrolled" : ""}`}>
         <Brand onClick={closeMenu} />
 
         <button
@@ -1716,62 +1240,24 @@ export default function LandingPage({ onLogin, onSignup, onPreview }) {
         </button>
 
         <nav className={`bp-nav-links ${menuOpen ? "is-open" : ""}`} aria-label="Main navigation">
-          <a href="#bizpilot-bp-features" onClick={closeMenu}>Platform</a>
-          <a href="#bizpilot-bp-agents" onClick={closeMenu}>AI agents</a>
-          <a href="#bizpilot-bp-how" onClick={closeMenu}>How it works</a>
-          <a href="#bizpilot-bp-import-records" onClick={closeMenu}>Your records</a>
-          <a href="#bizpilot-bp-faq" onClick={closeMenu}>FAQ</a>
-          <a href="#bizpilot-bp-businesses" onClick={closeMenu}>Who it's for</a>
+          {navLinks.map(([id, label]) => (
+            <a
+              key={id}
+              href={`#${id}`}
+              className={activeSection === id ? "is-active" : ""}
+              onClick={closeMenu}
+            >
+              {label}
+            </a>
+          ))}
         </nav>
 
         <div className="bp-nav-actions">
-
-          <button
-            type="button"
-            onClick={onLogin}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "10px",
-              padding: "11px 18px",
-              border: "1px solid #dce8df",
-              borderRadius: "10px",
-              background: "#ffffff",
-              color: "#173d30",
-              fontSize: "14px",
-              fontWeight: 600,
-              letterSpacing: "-0.2px",
-              cursor: "pointer",
-              transition: "all 180ms ease",
-              whiteSpace: "nowrap",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "#f1f7f2";
-              e.currentTarget.style.borderColor = "#b9d2c0";
-              e.currentTarget.style.color = "#0e7c51";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "#ffffff";
-              e.currentTarget.style.borderColor = "#dce8df";
-              e.currentTarget.style.color = "#173d30";
-            }}
-          >
-            Log in
-            <span
-              aria-hidden="true"
-              style={{
-                display: "inline-block",
-                fontSize: "17px",
-                lineHeight: 1,
-                transition: "transform 180ms ease",
-              }}
-            >
-              →
-            </span>
+          <button type="button" className="bp-login-btn" onClick={onLogin} onMouseEnter={warmAuthPhoto} onFocus={warmAuthPhoto}>
+            Log in <ArrowRight size={16} />
           </button>
 
-          <button type="button" className="bp-button bp-button-primary" onClick={onSignup}>
+          <button type="button" className="bp-button bp-button-primary" onClick={onSignup} onMouseEnter={warmAuthPhoto} onFocus={warmAuthPhoto}>
             Get started <ArrowUpRight size={15} />
           </button>
         </div>
@@ -1781,14 +1267,10 @@ export default function LandingPage({ onLogin, onSignup, onPreview }) {
         <section className="bp-hero">
           <Reveal direction="left">
             <div className="bp-hero-copy">
-              {/* <span className="bp-eyebrow">
-                BUILT FOR EVERYDAY BUSINESS OWNERS
-              </span> */}
-
               <h1>
-                Run your business with less guesswork.
+                <SplitWords text="Run your business with less guesswork." />
                 <br />
-                <span className="bp-gradient-text">Know what to do next.</span>
+                <SplitWords text="Know what to do next." start={6} accent />
               </h1>
 
               <p className="bp-hero-description">
@@ -1805,7 +1287,7 @@ export default function LandingPage({ onLogin, onSignup, onPreview }) {
               </div>
 
               <div className="bp-proof">
-                <span className="bp-proof-icon"><ShieldCheck size={19} /></span>
+                <span className="bp-proof-icon"><ShieldCheck size={20} /></span>
                 <div>
                   <strong>Built around real business needs</strong>
                   <small>From everyday operations to bigger decisions.</small>
@@ -1815,14 +1297,37 @@ export default function LandingPage({ onLogin, onSignup, onPreview }) {
           </Reveal>
 
           <Reveal direction="right">
-            <DashboardPreview />
+            <div data-parallax data-speed="0.04">
+              <DashboardPreview />
+            </div>
           </Reveal>
         </section>
+
+        <div className="bp-marquee" aria-hidden="true">
+          <div className="bp-marquee-track">
+            {[0, 1].map((copy) => (
+              <div className="bp-marquee-group" style={{ display: "flex" }} key={copy}>
+                {marqueeItems.map((item) => (
+                  <span className="bp-marquee-item" key={`${copy}-${item}`}>
+                    {item} <Sparkles size={18} />
+                  </span>
+                ))}
+                {marqueeItems.map((item) => (
+                  <span className="bp-marquee-item" key={`${copy}-b-${item}`}>
+                    {item} <Sparkles size={18} />
+                  </span>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
 
         <section className="bp-section bp-human-section" id="bizpilot-bp-story">
           <Reveal direction="left">
             <div className="bp-human-image">
-              <img src={MEDIA.hero} alt="A team collaborating around a table" loading="lazy" decoding="async" />
+              <div className="bp-frame">
+                <SmartImage id={MEDIA.hero} alt="A team collaborating around a table" preset="wide" priority parallax speed={0.05} />
+              </div>
               <div className="bp-image-caption">
                 <small>EVERY NUMBER HAS A STORY</small>
                 <p>Your records can help answer everyday business questions.</p>
@@ -1884,7 +1389,9 @@ export default function LandingPage({ onLogin, onSignup, onPreview }) {
                     Explore the workspace <ArrowRight size={16} />
                   </button>
                 </div>
-                <img src={MEDIA.analytics} alt="Business analytics displayed on a computer screen" loading="lazy" decoding="async" />
+                <div className="bp-frame bp-frame-sm">
+                  <SmartImage id={MEDIA.analytics} alt="Business analytics displayed on a computer screen" preset="wide" parallax speed={0.05} />
+                </div>
               </div>
             </Reveal>
           </div>
@@ -1901,15 +1408,17 @@ export default function LandingPage({ onLogin, onSignup, onPreview }) {
               </div>
             </Reveal>
             <div className="bp-import-grid">
-              {[
-                { icon: FileSpreadsheet, title: "CSV files", text: "A simple table of sales, products, stock, or payments." },
-                { icon: FileSpreadsheet, title: "Excel spreadsheets", text: "Existing .xlsx or spreadsheet records you already use." },
-                { icon: Command, title: "Pasted business records", text: "Copy rows or notes from a record and paste them in when supported." },
-                { icon: MessageSquareText, title: "Chat messages", text: "Useful order or customer details saved in conversations, where supported." },
-                { icon: FileText, title: "PDF documents", text: "Invoices, statements, and reports that may contain useful business details." },
-              ].map((item) => {
+              {importItems.map((item, index) => {
                 const Icon = item.icon;
-                return <article className="bp-import-card" key={item.title}><span className="bp-import-icon"><Icon size={21} /></span><h3>{item.title}</h3><p>{item.text}</p></article>;
+                return (
+                  <Reveal direction="up" delay={index * 80} key={item.title} className={index === importItems.length - 1 ? "bp-import-wide" : ""}>
+                    <article className="bp-import-card">
+                      <span className="bp-import-icon"><Icon size={21} /></span>
+                      <h3>{item.title}</h3>
+                      <p>{item.text}</p>
+                    </article>
+                  </Reveal>
+                );
               })}
             </div>
           </div>
@@ -2004,7 +1513,7 @@ export default function LandingPage({ onLogin, onSignup, onPreview }) {
               <div className="bp-video-wrap">
                 <video
                   ref={videoRef}
-                  poster={MEDIA.hero}
+                  poster={photoUrl(MEDIA.hero, 1200, 70)}
                   src={MEDIA.video}
                   muted
                   loop
@@ -2024,7 +1533,7 @@ export default function LandingPage({ onLogin, onSignup, onPreview }) {
                   >
                     {videoPlaying ? <Pause size={28} /> : <CirclePlay size={42} />}
                   </button>
-                  <span style={{ fontSize: 11 }}>{videoPlaying ? "Pause the story" : "Play the story"}</span>
+                  <span style={{ fontSize: 13 }}>{videoPlaying ? "Pause the story" : "Play the story"}</span>
                 </div>
               </div>
               <p className="bp-video-disclaimer">
@@ -2052,7 +1561,7 @@ export default function LandingPage({ onLogin, onSignup, onPreview }) {
             </Reveal>
 
             <Reveal direction="right">
-              <div className="bp-steps">
+              <div className="bp-steps" data-progress>
                 <div className="bp-step">
                   <span className="bp-step-number">01</span>
                   <div>
@@ -2110,11 +1619,23 @@ export default function LandingPage({ onLogin, onSignup, onPreview }) {
 
         <section className="bp-section bp-recommend-section" id="bizpilot-bp-recommendations">
           <div className="bp-container">
-            <Reveal direction="up"><div className="bp-center-heading"><span className="bp-kicker">HELP FOR YOUR NEXT MOVE</span><h2 className="bp-section-heading">Recommendations you can actually understand.</h2><p className="bp-section-description">BizPilot can help turn business records into clear things to check next. Suggestions should explain the reason behind them—not just give you a number.</p></div></Reveal>
+            <Reveal direction="up">
+              <div className="bp-center-heading">
+                <span className="bp-kicker">HELP FOR YOUR NEXT MOVE</span>
+                <h2 className="bp-section-heading">Recommendations you can actually understand.</h2>
+                <p className="bp-section-description">BizPilot can help turn business records into clear things to check next. Suggestions should explain the reason behind them—not just give you a number.</p>
+              </div>
+            </Reveal>
             <div className="bp-recommend-grid">
-              <article className="bp-recommend-card"><span className="bp-recommend-icon"><Boxes size={22} /></span><span className="bp-recommend-label">STOCK</span><h3>“This product may run out soon.”</h3><p>See which recorded items are running low and review them before placing an order.</p></article>
-              <article className="bp-recommend-card"><span className="bp-recommend-icon"><Wallet size={22} /></span><span className="bp-recommend-label">CASH FLOW</span><h3>“Check the money due this week.”</h3><p>Review recorded payments, bills, and expected money so you can plan ahead.</p></article>
-              <article className="bp-recommend-card"><span className="bp-recommend-icon"><TrendingUp size={22} /></span><span className="bp-recommend-label">SALES</span><h3>“Sales changed compared with last week.”</h3><p>Compare the records and investigate what may have caused the change.</p></article>
+              <Reveal direction="up" delay={0}>
+                <article className="bp-recommend-card"><span className="bp-recommend-icon"><Boxes size={22} /></span><span className="bp-recommend-label">STOCK</span><h3>“This product may run out soon.”</h3><p>See which recorded items are running low and review them before placing an order.</p></article>
+              </Reveal>
+              <Reveal direction="up" delay={100}>
+                <article className="bp-recommend-card"><span className="bp-recommend-icon"><Wallet size={22} /></span><span className="bp-recommend-label">CASH FLOW</span><h3>“Check the money due this week.”</h3><p>Review recorded payments, bills, and expected money so you can plan ahead.</p></article>
+              </Reveal>
+              <Reveal direction="up" delay={200}>
+                <article className="bp-recommend-card"><span className="bp-recommend-icon"><TrendingUp size={22} /></span><span className="bp-recommend-label">SALES</span><h3>“Sales changed compared with last week.”</h3><p>Compare the records and investigate what may have caused the change.</p></article>
+              </Reveal>
             </div>
             <p className="bp-recommend-disclaimer">Examples only. Recommendations depend on the quality and detail of your records; always review them before taking action.</p>
           </div>
@@ -2122,18 +1643,23 @@ export default function LandingPage({ onLogin, onSignup, onPreview }) {
 
         <section className="bp-section bp-faq-section" id="bizpilot-bp-faq">
           <div className="bp-container bp-faq-layout">
-            <Reveal direction="left"><div className="bp-faq-intro"><span className="bp-kicker">GOOD QUESTIONS, CLEAR ANSWERS</span><h2 className="bp-section-heading">Questions business owners may ask.</h2><p className="bp-section-description">New to business software or AI? Here are straightforward answers to help you understand the idea behind BizPilot.</p><div className="bp-faq-help"><CircleHelp size={22} /><span><strong>Still unsure?</strong><small>Open the workspace or create an account to explore what is available.</small></span></div></div></Reveal>
+            <Reveal direction="left">
+              <div className="bp-faq-intro">
+                <span className="bp-kicker">GOOD QUESTIONS, CLEAR ANSWERS</span>
+                <h2 className="bp-section-heading">Questions business owners may ask.</h2>
+                <p className="bp-section-description">New to business software or AI? Here are straightforward answers to help you understand the idea behind BizPilot.</p>
+                <div className="bp-faq-help"><CircleHelp size={22} /><span><strong>Still unsure?</strong><small>Open the workspace or create an account to explore what is available.</small></span></div>
+              </div>
+            </Reveal>
             <div className="bp-faq-list">
-              {[
-                { q: "Do I need to start a new business to use BizPilot?", a: "No. The idea is to help people who already run a business start with records they have, subject to the import options available in their workspace." },
-                { q: "What records can I start with?", a: "Possible starting points include CSV files, Excel spreadsheets, pasted rows or notes, chat messages, and PDF documents. Not every source or format is guaranteed to be supported yet." },
-                { q: "What do the six AI agents do?", a: "The Sales Agent reviews sales, Inventory Agent looks at stock, Reorder Agent flags items to review, Pricing Agent compares prices and costs, Cash Flow Agent summarizes money in and out, and Business Diagnosis Agent helps investigate changes." },
-                { q: "Will BizPilot automatically buy stock or change my prices?", a: "The agents are presented as assistants for understanding records and preparing suggestions. Do not assume they can place orders, move money, or change prices unless that action is explicitly available and approved in the product." },
-                { q: "Can I trust every recommendation?", a: "Treat recommendations as a starting point, not a guarantee. Check the source records, confirm important figures, and use your own judgment before making business decisions." },
-                { q: "Is the dashboard showing my real business figures?", a: "The landing-page dashboard uses sample data to demonstrate the layout. It is not your real business data." },
-                { q: "Do I need to be good with technology?", a: "The goal is to make the information easier to understand in everyday language. You should not need to understand complicated charts or technical terms to explore the basic ideas." },
-                { q: "Are all these features available right now?", a: "The page describes the intended experience. File imports, integrations, and agent actions depend on what is implemented and enabled in your current BizPilot version." },
-              ].map((item, index) => <details className="bp-faq-item" key={item.q} open={index === 0}><summary><span>{item.q}</span><ChevronDown size={18} /></summary><p>{item.a}</p></details>)}
+              {faqItems.map((item, index) => (
+                <Reveal direction="up" delay={Math.min(index, 4) * 60} key={item.q}>
+                  <details className="bp-faq-item" open={index === 0}>
+                    <summary><span>{item.q}</span><ChevronDown size={18} /></summary>
+                    <p>{item.a}</p>
+                  </details>
+                </Reveal>
+              ))}
             </div>
           </div>
         </section>
@@ -2161,16 +1687,39 @@ export default function LandingPage({ onLogin, onSignup, onPreview }) {
         </Reveal>
       </main>
 
-      <footer className="bp-footer bp-footer-expanded">
+      <footer className="bp-footer-expanded">
         <div className="bp-footer-main">
-          <div className="bp-footer-brand-column"><Brand onClick={closeMenu} /><p className="bp-footer-tagline">A clearer way to understand the business you are building.</p><p className="bp-footer-small">Bring your records together. Understand what is happening. Decide what to check next.</p><button type="button" className="bp-button bp-button-primary" onClick={onSignup}>Get started <ArrowUpRight size={15} /></button></div>
+          <div className="bp-footer-brand-column">
+            <Brand onClick={closeMenu} />
+            <p className="bp-footer-tagline">A clearer way to understand the business you are building.</p>
+            <p className="bp-footer-small">Bring your records together. Understand what is happening. Decide what to check next.</p>
+            <button type="button" className="bp-button bp-button-primary" onClick={onSignup}>Get started <ArrowUpRight size={15} /></button>
+          </div>
           <div className="bp-footer-column"><h3>Explore BizPilot</h3><a href="#bizpilot-bp-features">Business workspace</a><a href="#bizpilot-bp-import-records">Start with existing records</a><a href="#bizpilot-bp-recommendations">Recommendations</a><a href="#bizpilot-bp-how">How it works</a><a href="#bizpilot-bp-businesses">Who it helps</a></div>
           <div className="bp-footer-column"><h3>AI business agents</h3><a href="#bizpilot-bp-agents">Sales Agent</a><a href="#bizpilot-bp-agents">Inventory Agent</a><a href="#bizpilot-bp-agents">Reorder Agent</a><a href="#bizpilot-bp-agents">Pricing Agent</a><a href="#bizpilot-bp-agents">Cash Flow Agent</a><a href="#bizpilot-bp-agents">Business Diagnosis Agent</a></div>
-          <div className="bp-footer-column"><h3>Learn & account</h3><a href="#bizpilot-bp-faq">Frequently asked questions</a><a href="#bizpilot-bp-video-story">See the story</a><button type="button" onClick={onLogin}>Log in</button><button type="button" onClick={onSignup}>Create an account</button><button type="button" onClick={onPreview}>Explore the workspace</button></div>
+          <div className="bp-footer-column"><h3>Learn &amp; account</h3><a href="#bizpilot-bp-faq">Frequently asked questions</a><a href="#bizpilot-bp-video-story">See the story</a><button type="button" onClick={onLogin}>Log in</button><button type="button" onClick={onSignup}>Create an account</button><button type="button" onClick={onPreview}>Explore the workspace</button></div>
         </div>
-        <div className="bp-footer-how"><div><span className="bp-footer-step">01</span><strong>Bring your records</strong><p>Start with the files and information you already have, where supported.</p></div><div><span className="bp-footer-step">02</span><strong>Understand your business</strong><p>Review sales, stock, prices, and money records in clearer language.</p></div><div><span className="bp-footer-step">03</span><strong>Review the next step</strong><p>Explore suggestions, check the details, and make the final decision yourself.</p></div></div>
-        <div className="bp-footer-bottom"><p className="bp-copyright">© {new Date().getFullYear()} BizPilot. Built for clearer business decisions.</p><p>Demo figures are illustrative. Features depend on the current product version and enabled integrations.</p><a href="#bizpilot-bp-top">Back to top ↑</a></div>
+        <div className="bp-footer-how">
+          <div><span className="bp-footer-step">01</span><strong>Bring your records</strong><p>Start with the files and information you already have, where supported.</p></div>
+          <div><span className="bp-footer-step">02</span><strong>Understand your business</strong><p>Review sales, stock, prices, and money records in clearer language.</p></div>
+          <div><span className="bp-footer-step">03</span><strong>Review the next step</strong><p>Explore suggestions, check the details, and make the final decision yourself.</p></div>
+        </div>
+        <div className="bp-footer-bottom">
+          <p className="bp-copyright">© {new Date().getFullYear()} BizPilot. Built for clearer business decisions.</p>
+          <p>Demo figures are illustrative. Features depend on the current product version and enabled integrations.</p>
+          <a href="#bizpilot-bp-top">Back to top <ArrowUp size={13} /></a>
+        </div>
       </footer>
+
+      <button
+        type="button"
+        className={`bp-top-btn ${showTop ? "is-visible" : ""}`}
+        onClick={scrollToTop}
+        aria-label="Back to top"
+        tabIndex={showTop ? 0 : -1}
+      >
+        <ArrowUp size={20} />
+      </button>
     </div>
   );
 }
