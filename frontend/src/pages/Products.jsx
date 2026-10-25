@@ -1,0 +1,24 @@
+import React, { useMemo, useState } from "react";
+import { Plus, Search, PackageOpen, ArrowUpRight } from "lucide-react";
+import { formatKES, products } from "../mocks/data";
+
+export default function Products() {
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("All categories");
+  const [showForm, setShowForm] = useState(false);
+  const [extraProducts, setExtraProducts] = useState([]);
+  const [form, setForm] = useState({ name: "", category: "Groceries", cost: "", price: "", stock: "" });
+  const all = useMemo(() => [...extraProducts, ...products].filter(p => (`${p.name} ${p.sku || ""}`).toLowerCase().includes(query.toLowerCase()) && (category === "All categories" || p.category === category)), [query, category, extraProducts]);
+  function submit(e) {
+    e.preventDefault();
+    if (!form.name.trim() || Number(form.price) <= 0 || Number(form.stock) < 0) return;
+    setExtraProducts(current => [{ ...form, id: `NEW-${Date.now()}`, sku: `NEW-${String(current.length+1).padStart(3,"0")}`, cost: Number(form.cost)||0, price: Number(form.price), stock: Number(form.stock), reorderAt: 5, sold: 0, status: "In stock" }, ...current]);
+    setForm({ name: "", category: "Groceries", cost: "", price: "", stock: "" }); setShowForm(false);
+  }
+  return <div className="page-stack">
+    <div className="page-intro-row"><div><span className="eyebrow">PRODUCT CATALOGUE</span><h2>Products</h2><p>Manage your catalogue, pricing and product performance.</p></div><button className="button button-primary" onClick={()=>setShowForm(v=>!v)}><Plus size={17}/>{showForm ? "Cancel" : "Add product"}</button></div>
+    {showForm && <form className="panel product-form" onSubmit={submit}><div className="panel-heading"><div><h3>Add a product</h3><p>New items are added to this local demo session.</p></div></div><div className="form-grid"><label>Product name<input required value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="e.g. Brown bread 400g"/></label><label>Category<select value={form.category} onChange={e=>setForm({...form,category:e.target.value})}><option>Groceries</option><option>Dairy</option><option>Bakery</option><option>Household</option><option>Beverages</option></select></label><label>Cost per unit (KES)<input type="number" min="0" value={form.cost} onChange={e=>setForm({...form,cost:e.target.value})} placeholder="0"/></label><label>Selling price (KES)<input required type="number" min="1" value={form.price} onChange={e=>setForm({...form,price:e.target.value})} placeholder="0"/></label><label>Opening stock<input required type="number" min="0" value={form.stock} onChange={e=>setForm({...form,stock:e.target.value})} placeholder="0"/></label></div><button className="button button-primary" type="submit">Save product <ArrowUpRight size={15}/></button></form>}
+    <section className="panel"><div className="table-toolbar"><div><h3>All products <span className="count-badge">{all.length}</span></h3><p>Product information and selling prices</p></div><div className="table-controls"><label className="search-field"><Search size={16}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search products..."/></label><select value={category} onChange={e=>setCategory(e.target.value)} aria-label="Filter by category"><option>All categories</option><option>Groceries</option><option>Dairy</option><option>Bakery</option><option>Household</option><option>Beverages</option></select></div></div>
+    <div className="table-wrap"><table><thead><tr><th>PRODUCT</th><th>CATEGORY</th><th>SELLING PRICE</th><th>UNIT COST</th><th>GROSS MARGIN</th><th>UNITS SOLD</th><th>STOCK</th></tr></thead><tbody>{all.map(p=>{const margin=p.price ? ((p.price-(p.cost||0))/p.price)*100 : 0;return <tr key={p.id}><td><div className="table-product"><span className="product-thumb"><PackageOpen size={16}/></span><div><strong>{p.name}</strong><small>{p.sku}</small></div></div></td><td>{p.category}</td><td className="amount-cell">{formatKES(p.price)}</td><td>{formatKES(p.cost||0)}</td><td><div className="margin-cell"><span>{margin.toFixed(1)}%</span><div className="margin-track"><i style={{width:`${Math.min(margin,100)}%`}}/></div></div></td><td>{p.sold||0}</td><td><span className={`status-pill ${p.stock <= (p.reorderAt||5) ? "status-pending" : "status-complete"}`}>{p.stock} units</span></td></tr>})}</tbody></table>{all.length===0&&<div className="empty-state">No products found. Try another search.</div>}</div><div className="table-bottom"><span>Showing {all.length} products</span><span className="demo-pill">LOCAL DEMO</span></div></section>
+  </div>;
+}
