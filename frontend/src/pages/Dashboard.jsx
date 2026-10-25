@@ -21,7 +21,6 @@ import Alerts from "../components/Alerts";
 import { SalesChart, ProductBarChart } from "../components/Charts";
 import {
     alerts,
-    formatKES,
     products,
     salesTrend,
     monthlyTrend,
@@ -119,6 +118,26 @@ function getFirstName(profile) {
     return trimmedName ? trimmedName.split(/\s+/)[0] : "there";
 }
 
+/**
+ * Formats an amount using the currency selected in Settings.
+ * This formats the amount only; it does not perform exchange-rate conversion.
+ */
+function formatCurrency(amount, currency = "KES", languageCode = "en") {
+    const numericAmount = Number(amount) || 0;
+
+    try {
+        return new Intl.NumberFormat(languageCode || "en", {
+            style: "currency",
+            currency: currency || "KES",
+            maximumFractionDigits: 2,
+        }).format(numericAmount);
+    } catch {
+        return `${new Intl.NumberFormat(languageCode || "en", {
+            maximumFractionDigits: 2,
+        }).format(numericAmount)} ${currency || "KES"}`;
+    }
+}
+
 function DashboardSkeleton() {
     return (
         <div className="page-stack page-skeleton" aria-busy="true">
@@ -178,7 +197,7 @@ function DashboardSkeleton() {
     );
 }
 
-function downloadTransactions(rows) {
+function downloadTransactions(rows, currency = "KES") {
     if (!rows.length) return;
 
     const headers = [
@@ -187,7 +206,7 @@ function downloadTransactions(rows) {
         "Customer",
         "Time",
         "Payment method",
-        "Amount (KES)",
+        `Amount (${currency})`,
         "Status",
     ];
 
@@ -223,11 +242,15 @@ function downloadTransactions(rows) {
     link.click();
     link.remove();
 
-    // Delay revocation so the browser has time to begin the download.
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export default function Dashboard({ onNavigate, onAlert, profile }) {
+export default function Dashboard({
+    onNavigate,
+    onAlert,
+    profile,
+    preferences,
+}) {
     const loading = useFirstLoad();
 
     const [period, setPeriod] = useState("week");
@@ -236,6 +259,9 @@ export default function Dashboard({ onNavigate, onAlert, profile }) {
     const [lastUpdated, setLastUpdated] = useState(new Date());
     const [refreshing, setRefreshing] = useState(false);
     const [notice, setNotice] = useState("");
+
+    const currency = preferences?.currency || "KES";
+    const languageCode = preferences?.languageCode || "en";
 
     const chartData = period === "month" ? monthlyTrend : salesTrend;
     const firstName = getFirstName(profile);
@@ -355,7 +381,7 @@ export default function Dashboard({ onNavigate, onAlert, profile }) {
                         <span>
                             <Clock3 size={14} />
                             Updated{" "}
-                            {lastUpdated.toLocaleTimeString("en-KE", {
+                            {lastUpdated.toLocaleTimeString(languageCode, {
                                 hour: "2-digit",
                                 minute: "2-digit",
                             })}
@@ -388,10 +414,13 @@ export default function Dashboard({ onNavigate, onAlert, profile }) {
             </section>
 
             <section className="kpi-grid">
-                <div className="bp-animate-in bp-animate-delay-1" style={{ minWidth: 0 }}>
+                <div
+                    className="bp-animate-in bp-animate-delay-1"
+                    style={{ minWidth: 0 }}
+                >
                     <KPICard
                         label="Total sales"
-                        value={formatKES(sales)}
+                        value={formatCurrency(sales, currency, languageCode)}
                         change="12.8%"
                         detail="vs. last week"
                         icon={Wallet}
@@ -399,10 +428,13 @@ export default function Dashboard({ onNavigate, onAlert, profile }) {
                     />
                 </div>
 
-                <div className="bp-animate-in bp-animate-delay-2" style={{ minWidth: 0 }}>
+                <div
+                    className="bp-animate-in bp-animate-delay-2"
+                    style={{ minWidth: 0 }}
+                >
                     <KPICard
                         label="Gross profit"
-                        value={formatKES(profit)}
+                        value={formatCurrency(profit, currency, languageCode)}
                         change="8.2%"
                         detail="vs. last week"
                         icon={Activity}
@@ -410,7 +442,10 @@ export default function Dashboard({ onNavigate, onAlert, profile }) {
                     />
                 </div>
 
-                <div className="bp-animate-in bp-animate-delay-3" style={{ minWidth: 0 }}>
+                <div
+                    className="bp-animate-in bp-animate-delay-3"
+                    style={{ minWidth: 0 }}
+                >
                     <KPICard
                         label="Orders today"
                         value={String(orders)}
@@ -421,10 +456,13 @@ export default function Dashboard({ onNavigate, onAlert, profile }) {
                     />
                 </div>
 
-                <div className="bp-animate-in bp-animate-delay-4" style={{ minWidth: 0 }}>
+                <div
+                    className="bp-animate-in bp-animate-delay-4"
+                    style={{ minWidth: 0 }}
+                >
                     <KPICard
                         label="Items in stock"
-                        value={stock.toLocaleString("en-KE")}
+                        value={stock.toLocaleString(languageCode)}
                         change={`${lowStockCount} need review`}
                         detail="Based on sample products"
                         icon={Boxes}
@@ -477,11 +515,13 @@ export default function Dashboard({ onNavigate, onAlert, profile }) {
                         <span>Gross profit</span>
 
                         <span className="chart-total">
-                            {formatKES(
+                            {formatCurrency(
                                 chartData.reduce(
                                     (sum, point) => sum + point.sales,
                                     0
-                                )
+                                ),
+                                currency,
+                                languageCode
                             )}
                             <small> shown period</small>
                         </span>
@@ -628,7 +668,9 @@ export default function Dashboard({ onNavigate, onAlert, profile }) {
                     <button
                         className="button button-secondary button-small"
                         type="button"
-                        onClick={() => downloadTransactions(filteredTransactions)}
+                        onClick={() =>
+                            downloadTransactions(filteredTransactions, currency)
+                        }
                         disabled={filteredTransactions.length === 0}
                     >
                         <Download size={14} />
@@ -734,7 +776,11 @@ export default function Dashboard({ onNavigate, onAlert, profile }) {
                                             </span>
                                         </td>
                                         <td className="amount-cell">
-                                            {formatKES(transaction.amount)}
+                                            {formatCurrency(
+                                                transaction.amount,
+                                                currency,
+                                                languageCode
+                                            )}
                                         </td>
                                         <td>
                                             <span
