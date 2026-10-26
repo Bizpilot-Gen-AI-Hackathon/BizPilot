@@ -22,6 +22,7 @@ import {
   LayoutDashboard,
   Menu,
   Package,
+  Phone,
   Search,
   Settings2,
   X,
@@ -46,6 +47,16 @@ const Reports = lazy(() => import("./pages/Reports"));
 const Settings = lazy(() => import("./pages/Settings"));
 const HelpCentre = lazy(() => import("./pages/HelpCentre"));
 
+/*
+ * Operations Hub
+ *
+ * This path assumes OperationsHub.jsx is located at:
+ * src/locales/operationsHub/OperationsHub.jsx
+ */
+const OperationsHub = lazy(
+  () => import("./locales/operationsHub/OperationsHub")
+);
+
 const BOOT_KEY = "bizpilot_booted";
 const PROFILE_KEY = "bizpilot-profile";
 const SETTINGS_KEY = "bizpilot-settings";
@@ -68,6 +79,11 @@ const navigation = [
         id: "reports",
         labelKey: "reports & Insights",
         icon: ChartNoAxesCombined,
+      },
+      {
+        id: "operations",
+        labelKey: "Call Centre",
+        icon: Phone,
       },
     ],
   },
@@ -100,6 +116,10 @@ const pageTitleKeys = {
   reports: [
     "reports",
     "Analyze business performance, review trends, and make data-driven decisions.",
+  ],
+  operations: [
+    "Call Centre",
+    "Manage calls, suppliers, invoices, payments, and business communications.",
   ],
   chat: [
     "chat",
@@ -750,7 +770,6 @@ export default function App() {
             </div>
 
             <div className="sidebar-bottom">
-             
               <button
                 type="button"
                 className={`nav-item settings-item ${page === "settings" ? "active" : ""
@@ -1022,6 +1041,8 @@ export default function App() {
                   {page === "reports" && (
                     <Reports preferences={preferences} />
                   )}
+
+                  {page === "operations" && <OperationsHub />}
 
                   {page === "settings" && (
                     <Settings
