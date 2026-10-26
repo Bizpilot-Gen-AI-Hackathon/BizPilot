@@ -14,6 +14,10 @@ const LANGUAGE_CHANGE_EVENT = "bizpilot:language-change";
 
 
 const english = {
+    importing: "Importing data...",
+    emailConfirmed: "Email confirmed.",
+    passwordUpdated: "Password updated, please log in.",
+    resetLinkNeutral: "If that account exists, we sent a reset link.",
     dashboard: "Dashboard",
     overview: "Overview",
 

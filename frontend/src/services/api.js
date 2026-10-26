@@ -1,9 +1,32 @@
 const API_BASE_URL = (
-  import.meta.env.VITE_API_URL || "http://localhost:8000"
+  import.meta.env.VITE_API_URL || "http://127.0.0.1:8000"
 ).replace(/\/+$/, "");
 
 const TOKEN_KEY = "bizpilot_auth_token";
 const USER_KEY = "bizpilot_auth_user";
+
+function formatApiError(value) {
+  if (typeof value === "string") return value;
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => {
+        if (typeof item === "string") return item;
+        if (item && typeof item === "object") {
+          const location = Array.isArray(item.loc)
+            ? item.loc.filter((part) => part !== "body").join(".")
+            : "";
+          const message = item.msg || item.message || JSON.stringify(item);
+          return location ? `${location}: ${message}` : message;
+        }
+        return String(item);
+      })
+      .join(" ");
+  }
+  if (value && typeof value === "object") {
+    return value.message || value.msg || JSON.stringify(value);
+  }
+  return String(value);
+}
 
 /**
  * Session helpers
@@ -100,11 +123,9 @@ async function request(path, options = {}) {
 
     try {
       const errorData = await response.json();
-      message =
-        errorData.detail ||
-        errorData.message ||
-        errorData.error ||
-        message;
+      message = formatApiError(
+        errorData.detail || errorData.message || errorData.error || message
+      );
     } catch {
       // Retain the default error message for non-JSON responses.
     }
@@ -148,6 +169,7 @@ export async function signup(details) {
       name: details.name.trim(),
       email: details.email.trim().toLowerCase(),
       password: details.password,
+      businessName: details.business?.trim() || null,
     }),
   });
 
@@ -260,3 +282,5 @@ export const resetPassword = (token, password) =>
   request("/auth/reset-password", { method: "POST", body: JSON.stringify({ token, password }) });
 
 export const templateUrl = (kind = "products") => `${API_BASE_URL}/upload/template?kind=${kind}`;
+
+export { API_BASE_URL };

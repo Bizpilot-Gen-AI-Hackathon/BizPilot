@@ -17,6 +17,7 @@ import {
   UserRound,
 } from "lucide-react";
 import SmartImage, { PHOTOS } from "./SmartImage";
+import { forgotPassword, resetPassword, loginWithGoogle } from "../services/api";
 
 const GOOGLE_CLIENT_ID =
   typeof import.meta !== "undefined"
@@ -25,7 +26,7 @@ const GOOGLE_CLIENT_ID =
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-function getErrors(values, { signup, forgot, agree }) {
+function getErrors(values, { signup, forgot, reset, agree }) {
   const errors = {};
 
   if (signup && !values.name.trim()) {
@@ -38,7 +39,7 @@ function getErrors(values, { signup, forgot, agree }) {
     errors.email = "Enter a valid email address.";
   }
 
-  if (!forgot) {
+  if (!forgot && !reset) {
     if (!values.password) {
       errors.password = "Enter your password.";
     } else if (values.password.length < 8) {
@@ -146,8 +147,12 @@ export default function AuthPage({
   onSuccess,
   onModeChange,
   onGoogle,
+  resetToken = "",
+  resetMessage = "",
+  onResetComplete,
 }) {
-  const signup = mode === "signup";
+  const reset = Boolean(resetToken);
+  const signup = mode === "signup" && !reset;
 
   const [values, setValues] = useState({
     name: "",
@@ -165,11 +170,17 @@ export default function AuthPage({
   const [googleBusy, setGoogleBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [formError, setFormError] = useState("");
+  const [resetPasswordValue, setResetPasswordValue] = useState("");
+  const [resetConfirmation, setResetConfirmation] = useState("");
+
+  useEffect(() => {
+    if (resetMessage) setNotice(resetMessage);
+  }, [resetMessage]);
 
   const firstFieldRef = useRef(null);
   const requestRef = useRef(null);
 
-  const view = forgot ? "forgot" : mode;
+  const view = reset ? "reset" : forgot ? "forgot" : mode;
 
   const errors = getErrors(values, {
     signup,
@@ -230,6 +241,30 @@ export default function AuthPage({
     setFormError("");
     setNotice("");
 
+    if (reset) {
+      if (resetPasswordValue.length < 8) {
+        setFormError("Use at least 8 characters for your new password.");
+        return;
+      }
+      if (resetPasswordValue !== resetConfirmation) {
+        setFormError("Passwords do not match.");
+        return;
+      }
+      setSubmitting(true);
+      try {
+        await resetPassword(resetToken, resetPasswordValue);
+        window.history.replaceState({}, "", window.location.pathname);
+        onResetComplete?.();
+        setNotice("Password updated, please log in.");
+        onModeChange?.("login");
+      } catch (error) {
+        setFormError(error?.message || "This reset link is invalid or has expired.");
+      } finally {
+        setSubmitting(false);
+      }
+      return;
+    }
+
     const allTouched = {
       name: true,
       email: true,
@@ -251,9 +286,15 @@ export default function AuthPage({
     }
 
     if (forgot) {
-      setNotice(
-        "Password recovery is not connected yet. No reset email has been sent."
-      );
+      setSubmitting(true);
+      try {
+        await forgotPassword(values.email.trim().toLowerCase());
+        setNotice("If that account exists, we sent a reset link.");
+      } catch (error) {
+        setFormError(error?.message || "We couldn't send the reset link.");
+      } finally {
+        setSubmitting(false);
+      }
       return;
     }
 
@@ -272,6 +313,7 @@ export default function AuthPage({
       const payload = {
         name: values.name.trim() || email.split("@")[0],
         email,
+        password: values.password,
         business: values.business.trim(),
         remember,
         provider: "email",
@@ -305,6 +347,7 @@ export default function AuthPage({
       } finally {
         setGoogleBusy(false);
       }
+
       return;
     }
 
@@ -388,6 +431,42 @@ export default function AuthPage({
     }
   }
 
+  async function continueWithGoogleIdentity() {
+    setFormError("");
+    setNotice("");
+    if (!GOOGLE_CLIENT_ID) {
+      setFormError("Google sign-in is not configured.");
+      return;
+    }
+    setGoogleBusy(true);
+    try {
+      await loadGoogleScript();
+      await new Promise((resolve, reject) => {
+        window.google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: async (response) => {
+            try {
+              const user = await loginWithGoogle(response.credential);
+              await onSuccess({ ...user, provider: "google" });
+              resolve();
+            } catch (error) {
+              reject(error);
+            }
+          },
+        });
+        window.google.accounts.id.prompt((notification) => {
+          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+            reject(new Error("Google sign-in was cancelled or unavailable."));
+          }
+        });
+      });
+    } catch (error) {
+      setFormError(error?.message || "Google sign-in failed. Please try again.");
+    } finally {
+      setGoogleBusy(false);
+    }
+  }
+
   const headings = {
     login: {
       icon: <LockKeyhole size={19} />,
@@ -404,9 +483,16 @@ export default function AuthPage({
       title: "Reset your password",
       text: "Enter your email to start password recovery.",
     },
+    reset: {
+      icon: <LockKeyhole size={19} />,
+      title: "Choose a new password",
+      text: "Set a new password for your BizPilot account.",
+    },
   }[view];
 
-  const submitLabel = forgot
+  const submitLabel = reset
+    ? "Update password"
+    : forgot
     ? "Send reset link"
     : signup
       ? "Create account"
@@ -509,7 +595,7 @@ export default function AuthPage({
         </div>
 
         <section className="ap-card">
-          {!forgot && (
+          {!forgot && !reset && (
             <div className="ap-tabs" role="tablist" aria-label="Account">
               <button
                 type="button"
@@ -551,6 +637,32 @@ export default function AuthPage({
           )}
 
           <form className="ap-form" onSubmit={submit} noValidate>
+            {reset ? (
+              <>
+                <Field id="ap-new-password" label="New password" icon={<LockKeyhole size={17} />}>
+                  <input
+                    id="ap-new-password"
+                    ref={firstFieldRef}
+                    type="password"
+                    value={resetPasswordValue}
+                    onChange={(event) => setResetPasswordValue(event.target.value)}
+                    autoComplete="new-password"
+                    placeholder="At least 8 characters"
+                  />
+                </Field>
+                <Field id="ap-confirm-password" label="Confirm password" icon={<LockKeyhole size={17} />}>
+                  <input
+                    id="ap-confirm-password"
+                    type="password"
+                    value={resetConfirmation}
+                    onChange={(event) => setResetConfirmation(event.target.value)}
+                    autoComplete="new-password"
+                    placeholder="Repeat your new password"
+                  />
+                </Field>
+              </>
+            ) : (
+            <>
             {signup && (
               <>
                 <Field
@@ -677,6 +789,8 @@ export default function AuthPage({
                 </button>
               </div>
             )}
+            </>
+            )}
 
             {signup && (
               <div className="ap-terms">
@@ -761,7 +875,7 @@ export default function AuthPage({
               <button
                 type="button"
                 className="ap-google"
-                onClick={continueWithGoogle}
+                onClick={continueWithGoogleIdentity}
                 disabled={submitting || googleBusy}
               >
                 {googleBusy ? (
@@ -769,7 +883,7 @@ export default function AuthPage({
                 ) : (
                   <GoogleLogo />
                 )}
-                {googleBusy ? "Connecting to Google…" : "Google"}
+                {googleBusy ? "Connecting to Google…" : "Continue with Google"}
               </button>
             </>
           )}

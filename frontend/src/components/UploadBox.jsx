@@ -137,7 +137,7 @@ export default function UploadBox({ onFile }) {
             <span>
               {(file.size / 1024).toFixed(1)} KB
               {" · "}
-              {animating ? "Preparing preview…" : "Ready for demo preview"}
+              {animating ? "Preparing upload…" : "Ready to import"}
             </span>
 
             <div
@@ -201,7 +201,7 @@ export default function UploadBox({ onFile }) {
       {file && !animating && (
         <div className="upload-ready">
           <CheckCircle2 size={15} />
-          File selected. Backend upload will be enabled when the endpoint is ready.
+          File selected. Import will start automatically.
         </div>
       )}
     </div>

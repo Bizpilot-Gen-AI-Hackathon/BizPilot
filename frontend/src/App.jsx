@@ -32,7 +32,16 @@ import UploadBox from "./components/UploadBox";
 import LandingPage from "./components/LandingPage";
 import AuthPage from "./components/AuthPage";
 import { alerts } from "./mocks/data";
-import { getHealth } from "./services/api";
+import {
+  getHealth,
+  getAuthToken,
+  getStoredUser,
+  getCurrentUser,
+  login,
+  signup,
+  logout,
+  uploadBusinessFile,
+} from "./services/api";
 import i18n, {
   supportedLanguages,
   changeAppLanguage,
@@ -333,7 +342,13 @@ function PageSkeleton() {
 export default function App() {
   const { t } = useTranslation();
 
-  const [view, setView] = useState("landing");
+  const [resetToken, setResetToken] = useState(() =>
+    new URLSearchParams(window.location.search).get("reset_token") || ""
+  );
+  const [view, setView] = useState(() =>
+    getAuthToken() ? "app" : "login"
+  );
+  const [authNotice, setAuthNotice] = useState("");
   const [demoUser, setDemoUser] = useState(readProfile);
   const [preferences, setPreferences] = useState(readPreferences);
   const [page, setPage] = useState("dashboard");
@@ -343,6 +358,9 @@ export default function App() {
   const [search, setSearch] = useState("");
   const [apiStatus, setApiStatus] = useState("checking");
   const [toast, setToast] = useState("");
+  const [importResult, setImportResult] = useState(null);
+  const [importError, setImportError] = useState("");
+  const [importing, setImporting] = useState(false);
   const [navCount, setNavCount] = useState(0);
   const [boot, setBoot] = useState(() =>
     alreadyBooted() ? "gone" : "show"
@@ -354,6 +372,43 @@ export default function App() {
   const pageRef = useRef(null);
   const notifRef = useRef(null);
   const toastTimer = useRef(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const verification = params.get("verify");
+    if (verification) {
+      setAuthNotice(
+        verification === "success"
+          ? "Email confirmed."
+          : "That email confirmation link is invalid or has expired."
+      );
+      params.delete("verify");
+      const query = params.toString();
+      window.history.replaceState(
+        {},
+        "",
+        `${window.location.pathname}${query ? `?${query}` : ""}`
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!getAuthToken() || resetToken) return undefined;
+    let active = true;
+    getCurrentUser()
+      .then((user) => {
+        if (active) {
+          updateProfile(user);
+          setView("app");
+        }
+      })
+      .catch(() => {
+        if (active) setView("landing");
+      });
+    return () => {
+      active = false;
+    };
+  }, [resetToken]);
 
   const notify = useCallback((message) => {
     window.clearTimeout(toastTimer.current);
@@ -609,6 +664,33 @@ export default function App() {
     [navigate]
   );
 
+  const handleAuthSuccess = useCallback(async (payload) => {
+    let user;
+    if (payload?.provider === "google") {
+      user = payload;
+    } else if (payload?.mode === "signup") {
+      await signup(payload);
+      user = getStoredUser();
+    } else {
+      user = await login(payload);
+    }
+    if (user) updateProfile(user);
+    setAuthNotice("");
+    setView("app");
+  }, [updateProfile]);
+
+  const handleImport = useCallback(async (file) => {
+    setImporting(true);
+    setImportError("");
+    try {
+      setImportResult(await uploadBusinessFile(file));
+    } catch (error) {
+      setImportError(error?.message || "The file could not be imported.");
+    } finally {
+      setImporting(false);
+    }
+  }, []);
+
   const initials = getInitials(demoUser.name);
   const languageCode = i18n.resolvedLanguage || i18n.language || "en";
 
@@ -629,15 +711,12 @@ export default function App() {
       <div className="view-fade" key="auth">
         <AuthPage
           mode={view}
+          resetToken={resetToken}
           onBack={() => setView("landing")}
           onModeChange={setView}
-          onSuccess={(user) => {
-            updateProfile({
-              ...user,
-              avatar: user.avatar || demoUser.avatar || "",
-            });
-            setView("app");
-          }}
+          onSuccess={handleAuthSuccess}
+          resetMessage={authNotice}
+          onResetComplete={() => setResetToken("")}
         />
       </div>
     );
@@ -645,6 +724,21 @@ export default function App() {
     screen = (
       <div className="view-fade" key="app">
         <div className="app-shell">
+          {authNotice && (
+            <div className="dashboard-notice" role="status">
+              <Check size={16} />
+              <span>{authNotice}</span>
+              <button
+                type="button"
+                className="icon-button"
+                aria-label="Dismiss notification"
+                onClick={() => setAuthNotice("")}
+              >
+                <X size={15} />
+              </button>
+            </div>
+          )}
+
           <a className="skip-link" href="#main-content">
             {t("skipToContent")}
           </a>
@@ -1054,7 +1148,8 @@ export default function App() {
                       onSettingsChange={handleSettingsChange}
                       onLanguageChange={changeLanguage}
                       onAlert={onAlert}
-                      onLogout={() => {
+                      onLogout={async () => {
+                        await logout();
                         setView("landing");
                         setPage("dashboard");
                         notify("You have been logged out.");
@@ -1116,14 +1211,33 @@ export default function App() {
                 </div>
 
                 <UploadBox
-                  onFile={(file) =>
-                    notify(
-                      t("messages.fileSelected", {
-                        name: file.name,
-                      })
-                    )
-                  }
+                  onFile={handleImport}
                 />
+                {importing && <p role="status">{t("importing")}</p>}
+                {importError && (
+                  <p className="upload-error" role="alert">
+                    {importError}
+                  </p>
+                )}
+                {importResult && (
+                  <div className="import-results">
+                    <p>
+                      {importResult.imported} rows imported,{" "}
+                      {importResult.skipped} rows failed.
+                    </p>
+                    {importResult.errors?.length > 0 && (
+                      <ul>
+                        {importResult.errors.map((row) => (
+                          <li key={`${row.line}-${row.message}`}>
+                            Row {row.line}:{" "}
+                            {row.field ? `${row.field} — ` : ""}
+                            {row.message}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
 
                 <div className="modal-hint">
                   <CircleHelp size={15} />
