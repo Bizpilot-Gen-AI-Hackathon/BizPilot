@@ -6,7 +6,8 @@ from decimal import Decimal
 from sqlalchemy import select, text
 from app.db.database import SessionLocal
 from app.models.tables import Expense, Product, Sale, SaleItem, Workspace
-
+from app.models.tables import User
+from app.security import hash_password
 random.seed(42)
 
 # name, category, sku, stock, reorder_level, cost, price, popularity weight
@@ -52,6 +53,8 @@ def main():
     ws = Workspace(name="My Business", currency="KES")
     db.add(ws)
     db.flush()
+    db.add(User(workspace_id=ws.id, name="Demo Owner", email="demo@bizpilot.com",
+                password_hash=hash_password("demo1234"), role="businessOwner"))
 
     plist = [Product(workspace_id=ws.id, name=n, category=c, sku=s, stock_qty=st, reorder_level=r,
                      cost_price=Decimal(co), selling_price=Decimal(pr))

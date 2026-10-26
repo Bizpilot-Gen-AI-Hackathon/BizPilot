@@ -2,19 +2,14 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
+from app.api.deps import current_workspace
 from app.db.database import get_db
-from app.models.tables import Product, Sale, SaleItem, Workspace
+from app.models.tables import Product, Sale, SaleItem
 
 router = APIRouter()
 
 REV = func.coalesce(func.sum(SaleItem.qty * SaleItem.unit_price), 0)
 PROFIT = func.coalesce(func.sum(SaleItem.qty * (SaleItem.unit_price - SaleItem.unit_cost)), 0)
-
-
-def current_workspace(db: Session = Depends(get_db)) -> int:
-    # Placeholder until auth: use the first workspace. Later, read it from the JWT.
-    return db.scalar(select(Workspace.id).order_by(Workspace.id).limit(1))
-
 
 def product_status(stock: int, reorder: int) -> str:
     if stock <= reorder * 0.35:
