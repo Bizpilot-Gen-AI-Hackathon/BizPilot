@@ -15,26 +15,19 @@ import {
     RefreshCw,
     X,
 } from "lucide-react";
+import { useApi } from "../hooks/useApi";
+import { getDashboardSummary, getSalesTrend, getAlerts, getTransactions, getProducts } from "../services/api";
+import { salesTrend, monthlyTrend, alerts as mockAlerts, transactions as mockTx, products as mockProducts } from "../mocks/data";
 
 import KPICard from "../components/KPICard";
 import Alerts from "../components/Alerts";
 import { SalesChart, ProductBarChart } from "../components/Charts";
-import {
-    alerts,
-    products,
-    salesTrend,
-    monthlyTrend,
-    transactions,
-} from "../mocks/data";
 
-const TOTAL_SALES = 287400;
-const GROSS_PROFIT = 86420;
-const ORDERS_TODAY = 128;
-
-const ITEMS_IN_STOCK = products.reduce(
-    (total, product) => total + product.stock,
-    0
-);
+const mockSummary = {
+    totalSales: 287400,
+    grossProfit: 86420,
+    ordersToday: 128,
+};
 
 let hasLoadedOnce = false;
 
@@ -251,9 +244,25 @@ export default function Dashboard({
     profile,
     preferences,
 }) {
+    const { data: summary = mockSummary, isLive: summaryIsLive } = useApi(
+        getDashboardSummary,
+        mockSummary
+    );
+    const [period, setPeriod] = useState("week");
+    const { data: chartData = period === "week" ? salesTrend : monthlyTrend } =
+        useApi(
+            () => getSalesTrend(period),
+            period === "week" ? salesTrend : monthlyTrend,
+            [period]
+        );
+    const { data: alerts = mockAlerts } = useApi(getAlerts, mockAlerts);
+    const { data: transactions = mockTx } = useApi(
+        () => getTransactions(5),
+        mockTx
+    );
+    const { data: products = mockProducts } = useApi(getProducts, mockProducts);
     const loading = useFirstLoad();
 
-    const [period, setPeriod] = useState("week");
     const [transactionSearch, setTransactionSearch] = useState("");
     const [transactionFilter, setTransactionFilter] = useState("all");
     const [lastUpdated, setLastUpdated] = useState(new Date());
@@ -263,15 +272,21 @@ export default function Dashboard({
     const currency = preferences?.currency || "KES";
     const languageCode = preferences?.languageCode || "en";
 
-    const chartData = period === "month" ? monthlyTrend : salesTrend;
     const firstName = getFirstName(profile);
+    const totalSales = Number(summary?.totalSales ?? mockSummary.totalSales);
+    const grossProfit = Number(summary?.grossProfit ?? mockSummary.grossProfit);
+    const ordersToday = Number(summary?.ordersToday ?? mockSummary.ordersToday);
+    const itemsInStock = products.reduce(
+        (total, product) => total + (Number(product.stock) || 0),
+        0
+    );
 
     const topProducts = useMemo(
         () =>
             [...products]
                 .sort((a, b) => b.sold - a.sold)
                 .slice(0, 5),
-        []
+        [products]
     );
 
     const lowStockCount = products.filter(
@@ -307,10 +322,10 @@ export default function Dashboard({
         });
     }, [transactionSearch, transactionFilter]);
 
-    const sales = useCountUp(TOTAL_SALES, !loading);
-    const profit = useCountUp(GROSS_PROFIT, !loading);
-    const orders = useCountUp(ORDERS_TODAY, !loading);
-    const stock = useCountUp(ITEMS_IN_STOCK, !loading);
+    const sales = useCountUp(totalSales, !loading);
+    const profit = useCountUp(grossProfit, !loading);
+    const orders = useCountUp(ordersToday, !loading);
+    const stock = useCountUp(itemsInStock, !loading);
 
     async function handleRefresh() {
         if (refreshing) return;
@@ -387,7 +402,9 @@ export default function Dashboard({
                             })}
                         </span>
 
-                        <span className="demo-pill">DEMO DATA</span>
+                        <span className="demo-pill">
+                            {summaryIsLive ? "LIVE DATA" : "DEMO DATA"}
+                        </span>
                     </div>
                 </div>
             </section>

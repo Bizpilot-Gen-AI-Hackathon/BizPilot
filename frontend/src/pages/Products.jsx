@@ -12,7 +12,9 @@ import {
   DollarSign,
   RotateCcw,
 } from "lucide-react";
-import { products } from "../mocks/data";
+import { useApi } from "../hooks/useApi";
+import { getProducts } from "../services/api";
+import { products as mockProducts } from "../mocks/data";
 
 const CATEGORIES = [
   "Groceries",
@@ -291,6 +293,10 @@ function SectionHeading({ eyebrow, title, description, action }) {
 }
 
 export default function Products({ preferences }) {
+  const { data: products = mockProducts, isLive } = useApi(
+    getProducts,
+    mockProducts
+  );
   const currency = preferences?.currency || "KES";
   const languageCode = preferences?.languageCode || "en";
 
@@ -303,7 +309,7 @@ export default function Products({ preferences }) {
 
   const allProducts = useMemo(
     () => [...extraProducts, ...products],
-    [extraProducts]
+    [extraProducts, products]
   );
 
   const filteredProducts = useMemo(() => {
@@ -1128,7 +1134,7 @@ export default function Products({ preferences }) {
               letterSpacing: "1px",
             }}
           >
-            LOCAL DEMO
+            {isLive ? "LIVE DATA" : "DEMO DATA"}
           </span>
         </footer>
       </section>

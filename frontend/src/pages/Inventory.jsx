@@ -12,7 +12,9 @@ import {
   RotateCcw,
   CircleAlert,
 } from "lucide-react";
-import { products } from "../mocks/data";
+import { useApi } from "../hooks/useApi";
+import { getProducts } from "../services/api";
+import { products as mockProducts } from "../mocks/data";
 
 const COLORS = {
   green: "#16845B",
@@ -284,6 +286,10 @@ const tableCellStyle = {
 };
 
 export default function Inventory({ preferences }) {
+  const { data: products = mockProducts, isLive } = useApi(
+    getProducts,
+    mockProducts
+  );
   const currency = preferences?.currency || "KES";
   const languageCode = preferences?.languageCode || "en";
 
@@ -1037,7 +1043,7 @@ export default function Inventory({ preferences }) {
               letterSpacing: "1px",
             }}
           >
-            DEMO DATA
+            {isLive ? "LIVE DATA" : "DEMO DATA"}
           </span>
         </footer>
       </section>

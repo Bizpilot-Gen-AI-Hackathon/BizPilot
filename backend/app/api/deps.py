@@ -33,3 +33,9 @@ def current_workspace(authorization: str | None = Header(None),
         return payload["ws"]
     # No token: demo mode, use the first workspace.
     return db.scalar(select(Workspace.id).order_by(Workspace.id).limit(1))
+
+def require_workspace(authorization: str | None = Header(None)) -> int:
+    payload = decode_token(_token_from(authorization) or "")
+    if not payload:
+        raise HTTPException(status_code=401, detail="Please log in to continue.")
+    return payload["ws"]

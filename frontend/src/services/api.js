@@ -1,4 +1,3 @@
-
 const API_BASE_URL = (
   import.meta.env.VITE_API_URL || "http://localhost:8000"
 ).replace(/\/+$/, "");
@@ -28,10 +27,7 @@ export function getStoredUser() {
 }
 
 export function saveAuthSession(data) {
-  const user =
-    data?.user ??
-    data?.data?.user ??
-    null;
+  const user = data?.user ?? data?.data?.user ?? null;
 
   const token =
     data?.access_token ??
@@ -49,7 +45,6 @@ export function saveAuthSession(data) {
     if (token) {
       localStorage.setItem(TOKEN_KEY, token);
     }
-
     localStorage.setItem(USER_KEY, JSON.stringify(user));
   } catch {
     throw new Error("Unable to save your session in this browser.");
@@ -105,7 +100,6 @@ async function request(path, options = {}) {
 
     try {
       const errorData = await response.json();
-
       message =
         errorData.detail ||
         errorData.message ||
@@ -133,9 +127,6 @@ async function request(path, options = {}) {
 
 /**
  * Authentication
- *
- * Confirm these routes and response formats with the backend developer
- * before connecting the frontend to a live server.
  */
 
 export async function login(credentials) {
@@ -185,9 +176,7 @@ export async function getCurrentUser() {
 export async function logout() {
   try {
     if (getAuthToken()) {
-      await request("/auth/logout", {
-        method: "POST",
-      });
+      await request("/auth/logout", { method: "POST" });
     }
   } finally {
     clearAuthSession();
@@ -203,19 +192,29 @@ export async function getHealth() {
 }
 
 /**
- * Sales
+ * Dashboard and data endpoints
  */
+
+export const getDashboardSummary = () => request("/dashboard/summary");
+
+export const getSalesTrend = (period = "week") =>
+  request(`/dashboard/sales-trend?period=${encodeURIComponent(period)}`);
+
+export const getProducts = () => request("/products");
+
+export const getInventory = () => request("/inventory");
+
+export const getAlerts = () => request("/alerts");
+
+export const getTransactions = (limit = 5, { q = "", status = "" } = {}) => {
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (q) params.set("q", q);
+  if (status) params.set("status", status);
+  return request(`/transactions?${params}`);
+};
 
 export async function getSales(params = "") {
   return request(`/sales${params ? `?${params}` : ""}`);
-}
-
-/**
- * Inventory
- */
-
-export async function getInventory() {
-  return request("/inventory");
 }
 
 /**
@@ -242,3 +241,22 @@ export async function uploadBusinessFile(file) {
     body,
   });
 }
+
+export async function loginWithGoogle(credential) {
+  const data = await request("/auth/google", {
+    method: "POST",
+    body: JSON.stringify({ credential }),
+  });
+  return saveAuthSession(data);
+}
+
+export const resendVerification = (email) =>
+  request("/auth/resend-verification", { method: "POST", body: JSON.stringify({ email }) });
+
+export const forgotPassword = (email) =>
+  request("/auth/forgot-password", { method: "POST", body: JSON.stringify({ email }) });
+
+export const resetPassword = (token, password) =>
+  request("/auth/reset-password", { method: "POST", body: JSON.stringify({ token, password }) });
+
+export const templateUrl = (kind = "products") => `${API_BASE_URL}/upload/template?kind=${kind}`;

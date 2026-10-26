@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes_auth import router as auth_router
 from app.api.routes_data import router as data_router
 from app.config import settings
+from app.api.routes_upload import router as upload_router
+
 
 app = FastAPI(title="BizPilot API", version="0.1.0")
 
@@ -13,7 +15,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
+app.include_router(upload_router)
 app.include_router(auth_router)
 app.include_router(data_router)
 

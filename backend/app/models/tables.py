@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from sqlalchemy import Date, DateTime, ForeignKey, Index, Numeric, String, func
+from sqlalchemy import Date, DateTime, ForeignKey, Index, Numeric, String, false, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.database import Base
@@ -19,7 +19,9 @@ class User(Base):
     workspace_id: Mapped[int] = mapped_column(ForeignKey("workspaces.id"))
     name: Mapped[str] = mapped_column(String(120))
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
-    password_hash: Mapped[str] = mapped_column(String(255))
+    password_hash: Mapped[str | None] = mapped_column(String(255))   # null for Google-only accounts
+    email_verified: Mapped[bool] = mapped_column(default=False, server_default=false())
+    google_id: Mapped[str | None] = mapped_column(String(64), unique=True, index=True)
     role: Mapped[str] = mapped_column(String(30), default="businessOwner")
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
