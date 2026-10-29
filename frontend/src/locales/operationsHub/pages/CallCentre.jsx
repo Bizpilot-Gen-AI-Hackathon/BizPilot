@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import CallQueue from "../components/CallQueue";
+import { getAuthToken, savePhone, simulateUssd } from "../../../services/api";
 
 /* ====================================================================
    Call Centre  (original layout + calling flow kept)
@@ -472,6 +473,13 @@ export default function CallCentre({
     const [importMessage, setImportMessage] = useState("");
     const [historyFilter, setHistoryFilter] = useState("All");
     const [historySearch, setHistorySearch] = useState("");
+    const [ussdText, setUssdText] = useState("");
+    const [ussdReply, setUssdReply] = useState("");
+    const [ussdChoice, setUssdChoice] = useState("");
+    const [ussdLoading, setUssdLoading] = useState(false);
+    const [ussdError, setUssdError] = useState("");
+    const [ussdPhone, setUssdPhone] = useState("");
+    const [ussdPhoneMessage, setUssdPhoneMessage] = useState("");
 
     const fileInputRef = useRef(null);
     const zeroTimer = useRef(null);
@@ -480,6 +488,25 @@ export default function CallCentre({
     const backLong = useRef(false);
 
     const tones = useTones(soundOn);
+
+    useEffect(() => {
+        if (!getAuthToken()) return;
+        let active = true;
+        setUssdLoading(true);
+        simulateUssd("")
+            .then((result) => {
+                if (active) setUssdReply(result.reply || "");
+            })
+            .catch((requestError) => {
+                if (active) setUssdError(requestError.message);
+            })
+            .finally(() => {
+                if (active) setUssdLoading(false);
+            });
+        return () => {
+            active = false;
+        };
+    }, []);
 
     /* ---------- derived ---------- */
 
@@ -549,6 +576,51 @@ export default function CallCentre({
     function showFeedback(message, type = "success") {
         setError(type === "error" ? message : "");
         setSuccess(type === "success" ? message : "");
+    }
+
+    async function sendUssdChoice(event) {
+        event.preventDefault();
+        if (!getAuthToken()) {
+            setUssdError("Not logged in.");
+            return;
+        }
+        const choice = ussdChoice.trim();
+        if (!choice || ussdLoading || ussdReply.startsWith("END ")) return;
+        const nextText = ussdText ? `${ussdText}*${choice}` : choice;
+        setUssdLoading(true);
+        setUssdError("");
+        try {
+            const result = await simulateUssd(nextText);
+            setUssdText(nextText);
+            setUssdReply(result.reply || "");
+            setUssdChoice("");
+        } catch (requestError) {
+            setUssdError(requestError.message);
+        } finally {
+            setUssdLoading(false);
+        }
+    }
+
+    function resetUssd() {
+        setUssdText("");
+        setUssdReply("");
+        setUssdChoice("");
+        setUssdError("");
+    }
+
+    async function linkUssdPhone(event) {
+        event.preventDefault();
+        const phone = ussdPhone.replace(/\s+/g, "");
+        if (!/^\+254[17]\d{8}$/.test(phone)) {
+            setUssdPhoneMessage("Use a number like +254712345678.");
+            return;
+        }
+        try {
+            await savePhone(phone);
+            setUssdPhoneMessage("Phone linked successfully.");
+        } catch (requestError) {
+            setUssdPhoneMessage(requestError.message);
+        }
     }
 
     /* ---------- persistence ---------- */
@@ -1194,6 +1266,50 @@ export default function CallCentre({
                     </form>
                 </section>
             )}
+
+            <section className="oh-panel" style={{ marginBottom: 20 }}>
+                <div className="oh-panel-header">
+                    <div>
+                        <h2>USSD</h2>
+                        <p>Dial {import.meta.env.VITE_USSD_SHORTCODE || "the BizPilot shortcode"} from any phone, no internet needed.</p>
+                    </div>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "minmax(220px, .8fr) minmax(260px, 1.2fr)", gap: 20 }}>
+                    <div style={{ maxWidth: 280, margin: "0 auto", width: "100%", border: "10px solid #1f2937", borderRadius: 28, padding: 14, background: "#f9fafb" }}>
+                        <div style={{ minHeight: 180, padding: 12, borderRadius: 14, background: "#fff", color: "#111827" }}>
+                            <strong style={{ display: "block", marginBottom: 10 }}>BizPilot USSD</strong>
+                            <pre style={{ minHeight: 105, margin: 0, whiteSpace: "pre-wrap", fontFamily: "monospace", fontSize: 13 }}>
+                                {(ussdReply || "Press Send to start").replace(/^(CON|END)\s*/, "")}
+                            </pre>
+                            {ussdReply.startsWith("END ") && <p style={{ margin: "8px 0 0", color: "#168653", fontSize: 12 }}>Session ended</p>}
+                        </div>
+                    </div>
+                    <div>
+                        {!getAuthToken() && <p className="oh-form-error">Not logged in.</p>}
+                        {ussdError && <p className="oh-form-error">{ussdError}</p>}
+                        <form onSubmit={sendUssdChoice} style={{ display: "flex", gap: 8, alignItems: "end" }}>
+                            <div style={{ flex: 1 }}>
+                                <label className="oh-cc-label" htmlFor="oh-ussd-choice">Enter a menu choice</label>
+                                <input id="oh-ussd-choice" className="oh-cc-field" inputMode="numeric" value={ussdChoice} onChange={(event) => setUssdChoice(event.target.value)} disabled={ussdLoading || ussdReply.startsWith("END ")} />
+                            </div>
+                            <button className="oh-button oh-button-primary" type="submit" disabled={ussdLoading || ussdReply.startsWith("END ")}>{ussdLoading ? "Sending..." : "Send"}</button>
+                        </form>
+                        <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                            <button className="oh-button oh-button-secondary" type="button" onClick={resetUssd}>Cancel</button>
+                            <button className="oh-button oh-button-secondary" type="button" onClick={resetUssd}>New session</button>
+                        </div>
+                        <form onSubmit={linkUssdPhone} style={{ marginTop: 24 }}>
+                            <label className="oh-cc-label" htmlFor="oh-ussd-phone">Link your phone</label>
+                            <div style={{ display: "flex", gap: 8 }}>
+                                <input id="oh-ussd-phone" className="oh-cc-field" type="tel" placeholder="+254712345678" value={ussdPhone} onChange={(event) => setUssdPhone(event.target.value)} />
+                                <button className="oh-button oh-button-primary" type="submit">Save</button>
+                            </div>
+                            <p className="oh-cc-muted" style={{ marginTop: 6 }}>Use your Kenyan number so real USSD dial-in opens this business.</p>
+                            {ussdPhoneMessage && <p className="oh-form-success" role="status">{ussdPhoneMessage}</p>}
+                        </form>
+                    </div>
+                </div>
+            </section>
 
             <input ref={fileInputRef} type="file" accept=".vcf,text/vcard" hidden onChange={handleImportContacts} />
 

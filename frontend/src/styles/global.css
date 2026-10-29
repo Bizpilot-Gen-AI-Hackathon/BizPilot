@@ -237,6 +237,38 @@ a {
     padding: 0 8px 24px;
 }
 
+.brand-home {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 11px;
+    min-width: 0;
+    border: 0;
+    color: inherit;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+    padding: 0;
+}
+
+.brand-home:hover .brand-name {
+    color: var(--green);
+}
+
+.breadcrumb-home {
+    border: 0;
+    padding: 0;
+    color: inherit;
+    background: transparent;
+    font: inherit;
+    cursor: pointer;
+}
+
+.breadcrumb-home:hover {
+    color: var(--green);
+}
+
 .brand-mark {
     width: 38px;
     height: 38px;

@@ -19,6 +19,7 @@ class User(Base):
     workspace_id: Mapped[int] = mapped_column(ForeignKey("workspaces.id"))
     name: Mapped[str] = mapped_column(String(120))
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    phone: Mapped[str | None] = mapped_column(String(20), unique=True, index=True)
     password_hash: Mapped[str | None] = mapped_column(String(255))   # null for Google-only accounts
     email_verified: Mapped[bool] = mapped_column(default=False, server_default=false())
     google_id: Mapped[str | None] = mapped_column(String(64), unique=True, index=True)

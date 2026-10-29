@@ -762,14 +762,21 @@ export default function App() {
 
           <aside className={`sidebar ${sidebarOpen ? "sidebar-open" : ""}`}>
             <div className="brand-lockup">
-              <div className="brand-mark">
-                <Activity size={21} strokeWidth={2.5} />
-              </div>
+              <button
+                type="button"
+                className="brand-home"
+                onClick={() => setView("landing")}
+                aria-label={t("goToHome")}
+              >
+                <div className="brand-mark">
+                  <Activity size={21} strokeWidth={2.5} />
+                </div>
 
-              <div className="brand-name">
-                bizpilot<span>.</span>
-                <small>{t("businessIntelligence")}</small>
-              </div>
+                <div className="brand-name">
+                  bizpilot<span>.</span>
+                  <small>{t("businessIntelligence")}</small>
+                </div>
+              </button>
 
               <button
                 type="button"
@@ -925,7 +932,13 @@ export default function App() {
                 </button>
 
                 <div className="breadcrumbs">
-                  <span>{t("Workspace")}</span>
+                  <button
+                    type="button"
+                    className="breadcrumb-home"
+                    onClick={() => setView("landing")}
+                  >
+                    {t("Workspace")}
+                  </button>
                   <span className="breadcrumb-slash">/</span>
                   <strong>{pageTitle[0]}</strong>
                 </div>

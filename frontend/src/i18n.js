@@ -38,6 +38,7 @@ const english = {
 
     help: "Help Centre",
     helpDescription: "Find answers and get support",
+    goToHome: "Go to home",
 };
 
 

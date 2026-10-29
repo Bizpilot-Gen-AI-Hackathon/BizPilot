@@ -195,6 +195,20 @@ export async function getCurrentUser() {
   return request("/auth/me");
 }
 
+export async function simulateUssd(text) {
+  return request("/ussd/simulate", {
+    method: "POST",
+    body: JSON.stringify({ text }),
+  });
+}
+
+export async function savePhone(phone) {
+  return request("/auth/phone", {
+    method: "PUT",
+    body: JSON.stringify({ phone }),
+  });
+}
+
 export async function logout() {
   try {
     if (getAuthToken()) {

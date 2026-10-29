@@ -56,9 +56,13 @@ class GoogleIn(BaseModel):
     credential: str
 
 
+class PhoneIn(BaseModel):
+    phone: str = Field(min_length=1, max_length=20)
+
+
 def user_out(u: User, db: Session) -> dict:
     ws = db.get(Workspace, u.workspace_id)
-    return {"id": u.id, "name": u.name, "email": u.email, "role": u.role,
+    return {"id": u.id, "name": u.name, "email": u.email, "phone": u.phone, "role": u.role,
             "emailVerified": u.email_verified, "workspaceId": u.workspace_id,
             "businessName": ws.name if ws else None,
             "currency": ws.currency if ws else "KES"}
@@ -194,6 +198,20 @@ def google_login(body: GoogleIn, db: Session = Depends(get_db)):
 
 @router.get("/me")
 def me(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    return user_out(user, db)
+
+
+@router.put("/phone")
+def save_phone(body: PhoneIn, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    phone = re.sub(r"\s+", "", body.phone)
+    if not re.fullmatch(r"\+254[17]\d{8}", phone):
+        raise HTTPException(status_code=422, detail="Enter a valid Kenyan number, e.g. +254712345678.")
+    taken = db.scalar(select(User).where(User.phone == phone, User.id != user.id))
+    if taken:
+        raise HTTPException(status_code=409, detail="That phone number is already linked to another account.")
+    user.phone = phone
+    db.commit()
+    db.refresh(user)
     return user_out(user, db)
 
 
