@@ -86,3 +86,16 @@ class Recommendation(Base):
     evidence: Mapped[list] = mapped_column(JSONB, default=list)
     status: Mapped[str] = mapped_column(String(20), default="pending")
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class AgentRun(Base):
+    __tablename__ = "agent_runs"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    workspace_id: Mapped[int] = mapped_column(ForeignKey("workspaces.id"), index=True)
+    question: Mapped[str] = mapped_column(String(500))
+    agent: Mapped[str] = mapped_column(String(40))
+    tool_calls: Mapped[list] = mapped_column(JSONB, default=list)
+    result: Mapped[dict] = mapped_column(JSONB, default=dict)
+    model: Mapped[str] = mapped_column(String(120))
+    ms: Mapped[int] = mapped_column(default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())

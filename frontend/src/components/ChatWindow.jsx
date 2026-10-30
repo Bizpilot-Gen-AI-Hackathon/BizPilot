@@ -10,11 +10,13 @@ import {
     Sparkles,
     Volume2,
 } from "lucide-react";
+import { askAssistant } from "../services/api";
 
 const suggestions = [
-    "Which products should I reorder?",
-    "What were my best-selling products?",
-    "How can I improve my profit?",
+    "What will run out soon?",
+    "What should I reorder?",
+    "Which products make the most profit?",
+    "Why did my sales change this week?",
 ];
 
 const THINK_MS = 900;
@@ -99,7 +101,6 @@ export default function ChatWindow({ compact = false }) {
     const idRef = useRef(1);
     const listRef = useRef(null);
     const inputRef = useRef(null);
-    const replyTimer = useRef(null);
     const copyTimer = useRef(null);
     const recognitionRef = useRef(null);
     const finalTranscriptRef = useRef("");
@@ -138,7 +139,6 @@ export default function ChatWindow({ compact = false }) {
 
         return () => {
             mountedRef.current = false;
-            window.clearTimeout(replyTimer.current);
             window.clearTimeout(copyTimer.current);
 
             if (recognitionRef.current) {
@@ -191,25 +191,26 @@ export default function ChatWindow({ compact = false }) {
         ]);
         setValue("");
         setThinking(true);
-
-        replyTimer.current = window.setTimeout(() => {
-            if (!mountedRef.current) return;
-
-            const id = idRef.current++;
-
-            setMessages((current) => [
-                ...current,
-                {
-                    id,
-                    role: "assistant",
-                    animate: true,
-                    text: makeReply(question),
-                },
-            ]);
-
-            setThinking(false);
-            setStreamingId(id);
-        }, reducedMotion() ? 150 : THINK_MS);
+        askAssistant(question)
+            .then((response) => {
+                if (!mountedRef.current) return;
+                const id = idRef.current++;
+                setMessages((current) => [...current, {
+                    id, role: "assistant", animate: true, text: response.reply,
+                    details: response, confirmation: "",
+                }]);
+            })
+            .catch((error) => {
+                if (!mountedRef.current) return;
+                const id = idRef.current++;
+                setMessages((current) => [...current, {
+                    id, role: "assistant", animate: true,
+                    text: error.message || "Unable to get an answer right now.",
+                }]);
+            })
+            .finally(() => {
+                if (mountedRef.current) setThinking(false);
+            });
     }
 
     function toggleMicrophone() {
@@ -371,6 +372,34 @@ export default function ChatWindow({ compact = false }) {
                                                     Copy
                                                 </>
                                             )}
+                            {message.role === "assistant" && message.details && (
+                                            <details className="chat-evidence">
+                                                <summary>How BizPilot got this</summary>
+                                                {message.details.fallback && (
+                                                    <p>The AI assistant is unavailable right now. This is the data it would have used.</p>
+                                                )}
+                                                <p><strong>Gemma 4 - {message.details.model}</strong></p>
+                                                <ul>
+                                                    {(message.details.tool_calls || []).map((call, index) => (
+                                                        <li key={`${call.name}-${index}`}>
+                                                            <strong>{call.name}</strong>: {JSON.stringify(call.result)}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                                <ul>{(message.details.result?.evidence || []).map((item, index) => <li key={index}>{item}</li>)}</ul>
+                                                {message.details.result?.action?.type === "create_reorder_list" && (
+                                                    <button type="button" onClick={() => setMessages((current) => current.map((item) =>
+                                                        item.id === message.id ? { ...item, confirmation: "Reorder list proposal noted for your review." } : item
+                                                    ))}>Create reorder list</button>
+                                                )}
+                                                {message.details.result?.action?.type === "suggest_price_change" && (
+                                                    <button type="button" onClick={() => setMessages((current) => current.map((item) =>
+                                                        item.id === message.id ? { ...item, confirmation: "Price change proposal noted for your review." } : item
+                                                    ))}>Review price change</button>
+                                                )}
+                                                {message.confirmation && <p role="status">{message.confirmation}</p>}
+                                            </details>
+                            )}
                                         </button>
                                     </div>
                                 )}

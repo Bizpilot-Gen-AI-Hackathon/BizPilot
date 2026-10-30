@@ -1,10 +1,12 @@
+from app.agents.inventory_agent import InventoryAgent
+from app.agents.sales_agent import SalesAgent
+
+
 class Orchestrator:
-    """Phase-two specialist coordinator.
+    def __init__(self) -> None:
+        self.inventory = InventoryAgent()
+        self.sales = SalesAgent()
 
-    Specialist calls should be sequential or tightly bounded in concurrency on the
-    Gemini free tier because parallel calls multiply quota usage. Shared cache
-    entries should be reused before starting another specialist.
-    """
-
-    async def run(self, user_context: dict, question: str) -> dict:
-        raise NotImplementedError("Multi-agent orchestration is planned for phase 2.")
+    def choose(self, question: str):
+        keywords = ("sales", "sell", "seller", "profit", "margin", "revenue", "order", "change")
+        return self.sales if any(word in question.lower() for word in keywords) else self.inventory

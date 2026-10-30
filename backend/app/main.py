@@ -5,6 +5,7 @@ from app.api.routes_data import router as data_router
 from app.config import settings
 from app.api.routes_upload import router as upload_router
 from app.api.routes_agents import router as agents_router
+from app.api.routes_agents import chat_router
 from app.api.routes_ussd import router as ussd_router
 
 
@@ -21,6 +22,7 @@ app.include_router(upload_router)
 app.include_router(auth_router)
 app.include_router(data_router)
 app.include_router(agents_router)
+app.include_router(chat_router)
 app.include_router(ussd_router)
 
 @app.get("/")
