@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from datetime import datetime, timedelta
 from decimal import Decimal, ROUND_CEILING
 from typing import Any
@@ -11,6 +12,8 @@ from app.models.tables import Product, Sale, SaleItem
 
 REV = func.coalesce(func.sum(SaleItem.qty * SaleItem.unit_price), 0)
 PROFIT = func.coalesce(func.sum(SaleItem.qty * (SaleItem.unit_price - SaleItem.unit_cost)), 0)
+
+_NAME_STOPWORDS = {"the", "an", "of", "and", "for", "in", "my", "check", "stock", "enough", "its", "is", "it"}
 
 
 def money(value: Any) -> float:
@@ -25,11 +28,56 @@ def since(days: int) -> datetime:
     return datetime.now() - timedelta(days=days)
 
 
+def _compact(text: str) -> str:
+    """Lowercase and drop everything except letters and digits, so 'Sun Flower' equals 'sunflower'."""
+    return re.sub(r"[^a-z0-9]", "", text.lower())
+
+
+def _name_tokens(text: str) -> list[str]:
+    return [t for t in re.findall(r"[a-z0-9]+", text.lower()) if len(t) > 1 and t not in _NAME_STOPWORDS]
+
+
 def products_matching(db: Session, workspace_id: int, product_name: str | None) -> list[Product]:
     stmt = select(Product).where(Product.workspace_id == workspace_id).order_by(Product.name)
-    if product_name:
-        stmt = stmt.where(Product.name.ilike(f"%{product_name.strip()}%"))
-    return list(db.scalars(stmt))
+    products = list(db.scalars(stmt))
+    if not product_name or not product_name.strip():
+        return products
+    query = product_name.strip()
+
+    # 1. The exact phrase appears in the name (the old behaviour, so existing matches don't change).
+    lowered = query.lower()
+    exact = [p for p in products if lowered in p.name.lower()]
+    if exact:
+        return exact
+
+    # 2. Same text once spaces and punctuation are ignored, in either direction:
+    #    "sun flower oil" finds "Sunflower Oil", and "sunflower oil 1 litre bottle" finds "Sunflower Oil".
+    compact_query = _compact(query)
+    if compact_query:
+        loose = [
+            p for p in products
+            if compact_query in _compact(p.name)
+            or (len(_compact(p.name)) >= 4 and _compact(p.name) in compact_query)
+        ]
+        if loose:
+            return loose
+
+    # 3. Word overlap: at least half of the meaningful words must appear in the name,
+    #    and only the best-scoring products are returned.
+    tokens = _name_tokens(query)
+    if not tokens:
+        return []
+    needed = max(1, (len(tokens) + 1) // 2)
+    scored = []
+    for p in products:
+        name_compact = _compact(p.name)
+        hits = sum(1 for t in tokens if t in name_compact)
+        if hits >= needed:
+            scored.append((hits, p))
+    if not scored:
+        return []
+    best = max(hits for hits, _ in scored)
+    return [p for hits, p in scored if hits == best]
 
 
 def product_selector(products: list[Product]) -> dict[str, Any]:

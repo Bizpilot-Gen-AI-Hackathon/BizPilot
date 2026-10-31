@@ -4,12 +4,13 @@ import asyncio
 import json
 import logging
 import re
-import time
 import threading
+import time
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Callable
 
 from app.config import settings
+from app.tools.registry import normalize_gemini_schema
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,9 @@ class LLMError(Exception):
 
 
 class LLMUnavailable(LLMError):
-    pass
+    def __init__(self, message: str, attempt_errors: list[str] | None = None):
+        super().__init__(message)
+        self.attempt_errors = attempt_errors or []
 
 
 class ProviderNotConfigured(LLMUnavailable):
@@ -69,11 +72,67 @@ def redact_pii(value: Any) -> Any:
     return value
 
 
+def _status(error: BaseException) -> str:
+    for candidate in (getattr(error, "status_code", None), getattr(error, "code", None), getattr(error, "status", None)):
+        if candidate is not None:
+            return str(candidate)
+    match = re.search(r"\b([45]\d{2})\b", str(error))
+    return match.group(1) if match else "unknown"
+
+
+def _safe_error(error: BaseException) -> str:
+    raw = str(error)
+    if not raw and isinstance(error, (asyncio.TimeoutError, TimeoutError)):
+        raw = "request timed out"
+    message = re.sub(
+        r"(?i)(api[_ -]?key|authorization|bearer|token|password|connection string)\s*[:=]\s*\S+",
+        r"\1=[REDACTED]",
+        raw,
+    )
+    return f"type={type(error).__name__}; status={_status(error)}; message={message[:500]}"
+
+
+# --- Model cooldowns -------------------------------------------------------------
+# When a model fails with 429 (quota/rate limit) or a timeout, skip it for a while so
+# the next chat doesn't waste its whole deadline on a model that is known to be down.
+# If every model is cooling down, they are all tried anyway.
+_COOLDOWN: dict[str, float] = {}
+_QUOTA_COOLDOWN_SECONDS = 600
+_TIMEOUT_COOLDOWN_SECONDS = 60
+
+
+def _cooling(model: str) -> bool:
+    return _COOLDOWN.get(model, 0.0) > time.monotonic()
+
+
+def _note_failure(model: str, error: BaseException) -> None:
+    if _status(error) == "429":
+        _COOLDOWN[model] = time.monotonic() + _QUOTA_COOLDOWN_SECONDS
+    elif isinstance(error, (asyncio.TimeoutError, TimeoutError)):
+        _COOLDOWN[model] = time.monotonic() + _TIMEOUT_COOLDOWN_SECONDS
+
+
+def _speed_config(types: Any, model: str) -> dict[str, Any]:
+    """Extra generation settings that keep calls fast.
+
+    - http_options.timeout makes the SDK itself give up (milliseconds), so abandoned
+      background threads don't keep hitting the API after asyncio stops waiting.
+    - Gemini 3.x models reason before answering by default. A low thinking level
+      cuts several seconds from every call. Gemma models don't get this setting.
+    """
+    cfg: dict[str, Any] = {
+        "http_options": types.HttpOptions(timeout=int(settings.llm_timeout_seconds * 1000)),
+    }
+    if model.startswith("gemini-3"):
+        cfg["thinking_config"] = types.ThinkingConfig(thinking_level="low")
+    return cfg
+
+
 class GemmaClient:
     # Gemma 4 inference happens here.
     def __init__(self) -> None:
         if not settings.gemini_api_key:
-            raise ProviderNotConfigured("Gemma is not configured. Set GEMINI_API_KEY on the backend.")
+            raise ProviderNotConfigured("Gemma is not configured.")
         from google import genai
 
         self._client = genai.Client(api_key=settings.gemini_api_key)
@@ -88,159 +147,169 @@ class GemmaClient:
                 + json.dumps([{"name": t["name"], "description": t["description"], "args": t["parameters"]} for t in tools])
                 + '\nTool request format: {"tool":"tool_name","args":{...}}'
             )
-        prompt = f"{system}\n{tool_text}\n\n{contents}"
         from google.genai import types
 
         started = time.monotonic()
         response = self._client.models.generate_content(
             model=model,
-            contents=prompt,
-            config=types.GenerateContentConfig(response_mime_type="application/json"),
+            contents=f"{system}\n{tool_text}\n\n{contents}",
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                **_speed_config(types, model),
+            ),
         )
-        latency_ms = int((time.monotonic() - started) * 1000)
-        logger.info("gemma_call model=%s mode=json latency_ms=%s", model, latency_ms)
         text = (getattr(response, "text", "") or "").strip()
         calls: list[ToolCall] = []
         try:
             parsed = json.loads(text)
-            if isinstance(parsed, dict) and isinstance(parsed.get("tool"), str):
-                args = parsed.get("args", {})
-                if isinstance(args, dict):
-                    calls.append(ToolCall(parsed["tool"], args))
+            if isinstance(parsed, dict) and isinstance(parsed.get("tool"), str) and isinstance(parsed.get("args", {}), dict):
+                calls.append(ToolCall(parsed["tool"], parsed["args"], mode="json"))
         except (json.JSONDecodeError, TypeError):
             pass
-        return CompletionResult(text=text, tool_calls=calls, latency_ms=latency_ms, model=model)
+        return CompletionResult(text=text, tool_calls=calls,
+                                latency_ms=int((time.monotonic() - started) * 1000), model=model)
 
     def _request_native(self, model: str, system: str, messages: list[dict[str, Any]],
                         tools: list[dict[str, Any]]) -> CompletionResult:
         from google.genai import types
 
-        contents = "\n".join(
-            f"{message.get('role', 'user')}: {message.get('content', '')}" for message in messages
-        )
         declarations = [
             types.FunctionDeclaration(
                 name=tool["name"],
                 description=tool["description"],
-                parameters=tool["parameters"],
+                parameters=normalize_gemini_schema(tool["parameters"]),
             )
             for tool in tools
         ]
+        contents = "\n".join(f"{message.get('role', 'user')}: {message.get('content', '')}" for message in messages)
         started = time.monotonic()
         response = self._client.models.generate_content(
             model=model,
             contents=f"{system}\n\n{contents}",
             config=types.GenerateContentConfig(
                 tools=[types.Tool(function_declarations=declarations)],
+                **_speed_config(types, model),
             ),
         )
-        calls: list[ToolCall] = []
-        for candidate in getattr(response, "candidates", []) or []:
-            for part in getattr(getattr(candidate, "content", None), "parts", []) or []:
-                function_call = getattr(part, "function_call", None)
-                if function_call:
-                    name = getattr(function_call, "name", "")
-                    args = dict(getattr(function_call, "args", {}) or {})
-                    calls.append(ToolCall(name=name, arguments=args, mode="native"))
-        latency_ms = int((time.monotonic() - started) * 1000)
-        logger.info("gemma_call model=%s mode=native latency_ms=%s", model, latency_ms)
+        calls = [
+            ToolCall(getattr(part.function_call, "name", ""), dict(getattr(part.function_call, "args", {}) or {}), "native")
+            for candidate in getattr(response, "candidates", []) or []
+            for part in getattr(getattr(candidate, "content", None), "parts", []) or []
+            if getattr(part, "function_call", None)
+        ]
         return CompletionResult(
             text=(getattr(response, "text", "") or "").strip(),
             tool_calls=calls,
-            latency_ms=latency_ms,
+            latency_ms=int((time.monotonic() - started) * 1000),
             model=model,
             mode="native",
         )
 
-    async def generate(
-        self,
-        system: str,
-        messages: list[dict[str, Any]],
-        tools: list[dict[str, Any]] | None = None,
-        *,
-        allow_json_fallback: bool = False,
-        json_only: bool = False,
-    ) -> CompletionResult:
-        models = settings.gemma_models
-        if not models:
-            raise LLMUnavailable("No valid Gemma 4 models are configured.")
+    async def generate(self, system: str, messages: list[dict[str, Any]],
+                       tools: list[dict[str, Any]] | None = None, *,
+                       allow_json_fallback: bool = False, json_only: bool = False,
+                       deadline: float | None = None,
+                       attempt_errors: list[str] | None = None) -> CompletionResult:
+        errors = attempt_errors if attempt_errors is not None else []
+        # Remove duplicates but keep order, so the same model is never tried twice.
+        all_models = list(dict.fromkeys(settings.gemma_models))
+        if not all_models:
+            raise LLMUnavailable("No supported models are configured.", errors)
+        # Skip models that recently failed with quota/timeout errors (unless none are left).
+        models = [m for m in all_models if not _cooling(m)] or all_models
 
-        last_error: Exception | None = None
         for model in models:
+            json_tried = False
             try:
-                if tools:
-                    if json_only:
-                        return await self._request_with_retry(
-                            self._request_json, model, system, messages, tools
-                        )
+                if tools and not json_only:
                     try:
-                        native = await self._request_with_retry(
-                            self._request_native, model, system, messages, tools
+                        result = await self._request_with_retry(
+                            self._request_native, model, system, messages, tools, deadline, errors
                         )
-                        if native.tool_calls:
-                            return native
-                    except Exception as error:
-                        last_error = error
-                        logger.warning("Native tools unavailable for model=%s: %s", model, error)
-                        if allow_json_fallback:
-                            json_system = (
-                                f"{system}\nThe native tool interface was unavailable. "
-                                'When you need a tool, return only {"tool":"tool_name","args":{...}}.'
-                            )
-                            return await self._generate_json_with_models(
-                                json_system, messages, tools, models[models.index(model):]
-                            )
-                        raise
-                    return native
+                        if result.tool_calls:
+                            return result
+                    except LLMUnavailable:
+                        if not allow_json_fallback:
+                            raise
+                        json_tried = True
+                        json_system = f'{system}\nReturn tool requests only as {{"tool":"name","args":{{...}}}}.'
+                        # Models that just failed with 429/timeout are cooling down and get skipped here.
+                        remaining_models = [m for m in models[models.index(model):] if not _cooling(m)]
+                        return await self._generate_json(
+                            json_system, messages, tools, remaining_models, deadline, errors
+                        )
+                    return result
                 return await self._request_with_retry(
-                    self._request_json, model, system, messages, tools
+                    self._request_json, model, system, messages, tools, deadline, errors
                 )
-            except Exception as error:
-                last_error = error
-                logger.warning("Gemma model failed model=%s: %s", model, error)
+            except LLMUnavailable:
+                if json_tried:
+                    # The JSON fallback already walked the remaining models, so stop here.
+                    break
                 continue
-        raise LLMUnavailable("The AI service is temporarily unavailable.") from last_error
+        raise LLMUnavailable("The AI service is temporarily unavailable.", errors)
 
-    async def _generate_json_with_models(
-        self, system: str, messages: list[dict[str, Any]], tools: list[dict[str, Any]],
-        models: list[str],
-    ) -> CompletionResult:
-        last_error: Exception | None = None
+    async def _generate_json(self, system, messages, tools, models, deadline, errors):
         for model in models:
             try:
                 return await self._request_with_retry(
-                    self._request_json, model, system, messages, tools
+                    self._request_json, model, system, messages, tools, deadline, errors
                 )
-            except Exception as error:
-                last_error = error
-                logger.warning("JSON protocol failed model=%s: %s", model, error)
-        raise LLMUnavailable("The AI service is temporarily unavailable.") from last_error
+            except LLMUnavailable:
+                continue
+        raise LLMUnavailable("The AI service is temporarily unavailable.", errors)
 
-    async def _request_with_retry(self, request, model: str, system: str,
-                                  messages: list[dict[str, Any]], tools: list[dict[str, Any]] | None):
+    async def _request_with_retry(self, request: Callable, model: str, system: str,
+                                  messages: list[dict[str, Any]], tools: list[dict[str, Any]] | None,
+                                  deadline: float | None, errors: list[str]) -> CompletionResult:
         last_error: Exception | None = None
-        for attempt in range(2):
+        for attempt in range(1, 3):
+            remaining = (deadline - time.monotonic()) if deadline is not None else settings.llm_timeout_seconds
+            if remaining < 3:
+                errors.append(f"model={model}; attempt={attempt}; skipped: chat deadline reached")
+                raise LLMUnavailable("Chat deadline reached.", errors)
+            timeout = min(settings.llm_timeout_seconds, remaining)
+            started = time.monotonic()
             try:
-                return await asyncio.wait_for(
-                    asyncio.to_thread(
-                        request, model, redact_pii(system), redact_pii(messages), tools
-                    ),
-                    timeout=settings.llm_timeout_seconds,
+                result = await asyncio.wait_for(
+                    asyncio.to_thread(request, model, redact_pii(system), redact_pii(messages), tools),
+                    timeout=timeout,
                 )
+                logger.info("llm_attempt model=%s attempt=%s status=200 elapsed_ms=%s tools=%s prompt_chars=%s",
+                            model, attempt, int((time.monotonic() - started) * 1000),
+                            len(tools or []), len(system) + sum(len(str(item)) for item in messages))
+                return result
+            except asyncio.CancelledError:
+                # The caller went away (browser refresh, server reload). Record it, then let it propagate.
+                errors.append(
+                    f"model={model}; attempt={attempt}; elapsed_ms={int((time.monotonic() - started) * 1000)}; "
+                    "type=CancelledError; message=request cancelled by caller"
+                )
+                logger.warning("llm_attempt_cancelled model=%s attempt=%s", model, attempt)
+                raise
             except Exception as error:
                 last_error = error
-                if attempt == 0 and self._is_transient(error):
-                    await asyncio.sleep(1)
-                    continue
-                break
-        raise LLMUnavailable("The AI service is temporarily unavailable.") from last_error
+                _note_failure(model, error)
+                detail = (
+                    f"model={model}; attempt={attempt}; timeout_s={timeout:.0f}; "
+                    f"elapsed_ms={int((time.monotonic() - started) * 1000)}; {_safe_error(error)}"
+                )
+                errors.append(detail[:900])
+                logger.warning("llm_attempt_failed %s", detail)
+                if not self._is_transient(error) or attempt == 2:
+                    break
+                remaining = (deadline - time.monotonic()) if deadline is not None else 4
+                if remaining < 4:
+                    break
+                await asyncio.sleep(1)
+        raise LLMUnavailable("The AI service is temporarily unavailable.", errors) from last_error
 
     @staticmethod
     def _is_transient(error: Exception) -> bool:
-        status = str(error).upper()
-        return any(marker in status for marker in (
-            "429", "500", "502", "503", "504", "TIMEOUT", "TEMPORARY", "UNAVAILABLE"
-        ))
+        # Only server-side hiccups are worth retrying on the same model.
+        # - Timeouts: a model that was too slow once is usually too slow again.
+        # - 429: a quota/rate limit won't clear in a second, so go to the next model.
+        return _status(error) in {"500", "502", "503", "504"}
 
 
 class _State:
@@ -275,12 +344,12 @@ async def complete(messages: list[dict[str, Any]], system: str, tools: list[dict
             raise LLMBudgetExceeded("The AI daily call budget has been reached.")
         _state.calls += 1
     last_error: Exception | None = None
-    adapter = _adapter("gemini")
     for attempt in range(4):
         try:
-            if attempt == 3:
-                adapter = _adapter("fallback")
-            result = await asyncio.to_thread(adapter.complete, messages, system, tools or [], response_schema, settings.gemma_model)
+            adapter = _adapter("fallback" if attempt == 3 else "gemini")
+            result = await asyncio.to_thread(
+                adapter.complete, messages, system, tools or [], response_schema, settings.gemma_model
+            )
             if attempt == 3 and result.provider == "fallback":
                 result.provider = "gemini"
             with _state.lock:
@@ -295,7 +364,7 @@ async def complete(messages: list[dict[str, Any]], system: str, tools: list[dict
 
 
 def reset_runtime_state() -> None:
-    """Compatibility hook for callers that reset the former provider cache."""
     with _state.lock:
         _state.calls = 0
         _state.cache.clear()
+    _COOLDOWN.clear()

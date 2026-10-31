@@ -98,4 +98,5 @@ class AgentRun(Base):
     result: Mapped[dict] = mapped_column(JSONB, default=dict)
     model: Mapped[str] = mapped_column(String(120))
     ms: Mapped[int] = mapped_column(default=0)
+    error: Mapped[str | None] = mapped_column(String(1000), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())

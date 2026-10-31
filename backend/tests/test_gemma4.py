@@ -12,6 +12,7 @@ from app.llm import client
 from app.models.tables import Base, Product, Sale, SaleItem, Workspace
 from app.tools.registry import TOOL_REGISTRY
 from app.tools.stock_tools import get_stock
+from app.tools.registry import normalize_gemini_schema
 
 
 @pytest.fixture
@@ -50,6 +51,22 @@ def test_tool_argument_validation_rejects_unknown_and_spoofing():
         agent._validate_args("not_a_tool", {})
     with pytest.raises(ValueError):
         agent._validate_args("get_stock", {"workspace_id": 999})
+
+
+def test_all_tool_schemas_are_normalized_for_gemini():
+    unsupported = {"additionalProperties", "additional_properties", "$schema", "title", "default"}
+
+    def keys(value):
+        if isinstance(value, dict):
+            for key, item in value.items():
+                yield key
+                yield from keys(item)
+        elif isinstance(value, list):
+            for item in value:
+                yield from keys(item)
+
+    for entry in TOOL_REGISTRY.values():
+        assert not unsupported.intersection(keys(normalize_gemini_schema(entry["parameters"])))
 
 
 def test_privacy_scrub_removes_customer_fields():
@@ -259,3 +276,24 @@ def test_failure_after_tool_execution_does_not_rerun_tool(monkeypatch, db):
     assert calls == 1
     assert len(result["tool_calls"]) == 1
     assert result["tool_calls"][0]["mode"] == "native"
+
+
+def test_gemma_failure_records_sanitized_error(monkeypatch, db):
+    class ProviderFailure(Exception):
+        status_code = 503
+
+    class FakeGemma:
+        def __init__(self):
+            pass
+
+        async def generate(self, *args, **kwargs):
+            raise client.LLMUnavailable(
+                "The AI service is temporarily unavailable.",
+            ) from ProviderFailure("upstream failed api_key=secret-value")
+
+    monkeypatch.setattr("app.agents.base_agent.GemmaClient", FakeGemma)
+    session, workspace_id = db
+    result = asyncio.run(InventoryAgent().run(session, workspace_id, "Check stock"))
+    assert result["fallback"] is True
+    assert result["error"].startswith("type=ProviderFailure; status=503;")
+    assert "secret-value" not in result["error"]

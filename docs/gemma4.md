@@ -1,9 +1,10 @@
 # Gemma 4 in BizPilot
 
-BizPilot uses `gemma-4-26b-a4b-it` as the primary model and
-`gemma-4-31b-it` as the fallback. The ordered, de-duplicated chain is configured
-by `gemma_model` and comma-separated `gemma_fallback_models`; non-Gemma-4 IDs are
-logged and skipped. The model is used for meaningful
+BizPilot uses `gemma-4-26b-a4b-it` as the primary model, followed by
+`gemini-3.5-flash` and `gemini-3.1-flash-lite`. The ordered, de-duplicated chain
+is configured by `gemma_model` and comma-separated `gemma_fallback_models`; only
+these explicit model families are accepted and unsupported IDs are logged and
+skipped. The model is used for meaningful
 business reasoning over aggregate sales and inventory data; calculations are performed
 by workspace-scoped Python tools.
 
@@ -11,8 +12,10 @@ by workspace-scoped Python tools.
 
 The provider call is in [`backend/app/llm/client.py`](../backend/app/llm/client.py).
 `GemmaClient` uses the `google-genai` SDK and reads the validated model chain from
-settings. It tries each model in order, retrying once after about one second only
-for transient 429/5xx/timeout/unavailable errors. The response `model` field and
+settings. It applies a 12-second timeout per attempt, a 25-second whole-chat
+deadline, and will not start an attempt with fewer than 3 seconds remaining.
+Each model receives at most one retry, only for transient 408/429/5xx/timeout
+errors; HTTP 400 errors move immediately to the next model. The response `model` field and
 frontend badge identify the model that actually succeeded. The
 orchestrator selects an inventory or sales agent using deterministic keyword routing.
 The selected agent sends only aggregate tool results to Gemma, validates requested
@@ -52,7 +55,7 @@ partial matching and ambiguous matches are returned for clarification.
 ## Limitations and terms
 
 The demo currently uses synthetic/sample data, native function calling with a JSON
-fallback, the two-model Gemma 4 chain, and Gemini API/free-tier rate limits. Review
+fallback, the configured Gemma/Gemini chain, and Gemini API/free-tier rate limits. Review
 every proposed action against your own records.
 
 Official Gemma terms: [Google Gemma Terms placeholder](https://ai.google.dev/gemma/terms).

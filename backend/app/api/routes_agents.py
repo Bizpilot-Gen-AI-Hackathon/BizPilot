@@ -32,7 +32,7 @@ async def chat(payload: ChatQuestion, db: Session = Depends(get_db),
     run = await agent.run(db, workspace_id, payload.message)
     db.add(AgentRun(workspace_id=workspace_id, question=payload.message, agent=agent.name,
                     tool_calls=run["tool_calls"], result=run["result"].model_dump(),
-                    model=run["model"], ms=run["ms"]))
+                    model=run["model"], ms=run["ms"], error=run.get("error")))
     db.commit()
     return {"reply": _reply(run), "result": run["result"].model_dump(),
             "tool_calls": run["tool_calls"], "model": run["model"], "fallback": run["fallback"]}

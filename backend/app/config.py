@@ -9,8 +9,9 @@ class Settings(BaseSettings):
     database_url: str
     gemini_api_key: str = ""
     gemma_model: str = "gemma-4-26b-a4b-it"
-    gemma_fallback_models: str = "gemma-4-31b-it"
-    llm_timeout_seconds: int = 30
+    gemma_fallback_models: str = "gemini-3.5-flash,gemini-3.1-flash-lite"
+    llm_timeout_seconds: int = 12
+    llm_chat_deadline_seconds: int = 25
     llm_max_tool_calls: int = 5
     anthropic_api_key: str = ""
     openai_api_key: str = ""
@@ -60,8 +61,8 @@ class Settings(BaseSettings):
             model = raw_model.strip()
             if not model:
                 continue
-            if not model.startswith("gemma-4"):
-                logger.warning("Skipping non-Gemma 4 model configured for fallback: %s", model)
+            if not (model.startswith("gemma-4") or model in {"gemini-3.5-flash", "gemini-3.1-flash-lite"}):
+                logger.warning("Skipping non-Gemma 4 model (unsupported fallback): %s", model)
                 continue
             if model not in models:
                 models.append(model)
